@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تاسیسات اندرزگو - خدمات تخصصی</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+        :root { --primary: #0f172a; --secondary: #3b82f6; --accent: #f59e0b; --bg: #f1f5f9; --card: #ffffff; --text: #334155; --muted: #64748b; --border: #e2e8f0; --success: #10b981; --danger: #ef4444; --consult: #0ea5e9; --warning: #f59e0b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Vazirmatn', Tahoma, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 150px; font-size: 14px; position: relative; }
+        .container { max-width: 650px; margin: auto; padding: 10px; }
+        
+        /* هدر */
+        .header { text-align: center; padding: 20px 15px; background: linear-gradient(135deg, var(--primary), #1e293b); color: white; border-radius: 0 0 20px 20px; margin-bottom: 15px; position: relative; }
+        .header-logo { max-width: 150px; border-radius: 12px; background: white; margin-bottom: 10px; }
+        .header p { font-size: 13px; opacity: 0.9; margin-bottom: 15px; }
+        .contact-buttons { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+        .contact-btn { display: flex; align-items: center; gap: 5px; padding: 8px 12px; border-radius: 20px; text-decoration: none; font-size: 12px; font-weight: bold; color: white; }
+        .btn-call { background: var(--success); } .btn-map { background: #4285F4; }
+        .social-links { display: flex; justify-content: center; gap: 12px; font-size: 20px; margin-top: 10px;}
+        .social-links a { color: white; text-decoration: none; background: rgba(255,255,255,0.1); width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; border-radius: 50%; }
+        
+        /* دکمه شناور تخفیف */
+        .floating-discount { position: fixed; top: 20px; left: 20px; background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); z-index: 900; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* --- استایل پلیر کوچک و شناور (بالا سمت راست) --- */
+        .mini-player-btn {
+            position: fixed; top: 20px; right: 20px; z-index: 3000;
+            background: var(--primary); color: white; width: 50px; height: 50px;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 22px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: 2px solid var(--secondary); transition: 0.3s;
+        }
+        .mini-player-btn:hover { background: var(--secondary); }
+
+        .music-panel {
+            position: fixed; top: 80px; right: 20px; width: 300px;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 3000; color: white; display: flex; flex-direction: column;
+            border: 1px solid rgba(255,255,255,0.1); overflow: hidden;
+            transform: translateY(-20px); opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .music-panel.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+        
+        .mp-header { padding: 12px 15px; background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 13px; }
+        .mp-close { background: rgba(255,255,255,0.1); border: none; color: white; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 14px; }
+        
+        .mp-body { padding: 15px; }
+        .mp-track-info { text-align: center; margin-bottom: 15px; }
+        .mp-track-name { font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #60a5fa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mp-track-status { font-size: 11px; color: #94a3b8; display: flex; justify-content: center; align-items: center; gap: 5px; }
+        .live-dot { width: 8px; height: 8px; background: var(--danger); border-radius: 50%; animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        .mp-controls { display: flex; justify-content: center; align-items: center; margin-bottom: 15px; }
+        .mp-btn-play { background: white; color: var(--primary); border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(255,255,255,0.2); }
+        .mp-btn-play:active { transform: scale(0.95); }
+
+        /* کادر جستجوی ایستگاه */
+        .mp-search-box { margin-bottom: 10px; }
+        .mp-search-box input { width: 100%; padding: 8px 10px; border-radius: 8px; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 12px; outline: none; text-align: center; }
+        .mp-search-box input::placeholder { color: #64748b; }
+
+        .mp-stations-list { max-height: 150px; overflow-y: auto; padding-right: 5px; }
+        .mp-station-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 12px; margin-bottom: 5px; background: rgba(255,255,255,0.05); transition: 0.2s; }
+        .mp-station-item:hover { background: rgba(255,255,255,0.15); }
+        .mp-station-item.active { background: rgba(59, 130, 246, 0.3); color: #60a5fa; font-weight: bold; border-left: 3px solid #3b82f6; }
+        .mp-volume { display: flex; align-items: center; gap: 10px; font-size: 12px; margin-top: 15px; }
+        .mp-volume input { flex: 1; accent-color: var(--secondary); }
+
+        /* بقیه استایل‌ها */
+        .main-card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+        .main-card-title { font-size: 16px; font-weight: bold; color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .ad-banner { background: linear-gradient(135deg, #1e293b, #0f172a); color: white; border: 2px solid var(--warning); position: relative; overflow: hidden; }
+        .ad-timer { position: absolute; top: 10px; right: 10px; background: var(--danger); padding: 4px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+        .ad-title { font-size: 15px; font-weight: bold; margin-bottom: 10px; padding-left: 50px; color: var(--warning); }
+        .ad-text { font-size: 14px; line-height: 1.8; }
+        .ad-disclaimer { font-size: 10px; color: #94a3b8; margin-top: 15px; border-top: 1px dashed #334155; padding-top: 10px; }
+
+        .consult-merged { background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1px solid #bfdbfe; border-radius: 12px; padding: 15px; text-align: center; }
+        .consult-phones { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .consult-phones a { text-decoration: none; color: var(--primary); font-size: 16px; font-weight: bold; direction: ltr; display: flex; justify-content: center; align-items: center; gap: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .consult-phones a span { font-size: 18px; }
+        .btn-consult-online { background: var(--consult); color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; }
+
+        .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .dash-btn { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; font-size: 14px; color: var(--primary); transition: 0.2s; text-decoration: none; }
+        .dash-btn:hover { background: #f1f5f9; border-color: var(--secondary); }
+        .dash-btn.active { background: #eff6ff; border-color: var(--secondary); color: var(--secondary); border-radius: 10px 10px 0 0; margin-bottom: 0;}
+        .dash-btn-icon { font-size: 20px; margin-left: 10px; }
+        
+        .sub-content { background: white; border: 1px solid var(--border); border-top: none; border-radius: 0 0 10px 10px; padding: 15px; margin-top: 0; margin-bottom: 10px; }
+        .search-box { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 15px; font-size: 14px; outline: none; background: var(--bg); }
+        .category-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+        .category-header { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; font-size: 14px; background: #f8fafc; color: var(--primary); }
+        .category-header.active { background: #eff6ff; color: var(--secondary); }
+        .category-items { padding: 10px 15px; display: none; border-top: 1px solid var(--border); }
+        .category-card.open .category-items { display: block; }
+        .service-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px dashed var(--border); cursor: pointer; }
+        .service-item input { width: 20px; height: 20px; accent-color: var(--secondary); }
+
+        .comm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .comm-btn { display: flex; justify-content: center; align-items: center; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: bold; color: white; font-size: 14px; }
+        .btn-bale { background: #21a038; } .btn-rubika { background: #7b2cbf; } .btn-wa { background: #25D366; } .btn-tg { background: #0088cc; }
+        
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: var(--muted); }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 14px; outline: none; background: var(--bg); }
+        .error-input { border-color: var(--danger) !important; background: #fef2f2 !important; }
+        .error-text { color: var(--danger); font-size: 11px; margin-top: 4px; display: block; font-weight: bold; text-align: center; }
+        .success-text { color: var(--success); font-size: 11px; margin-top: 4px; display: block; font-weight: bold; }
+        
+        .bottom-panel { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-radius: 20px 20px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); padding: 15px; z-index: 1000; max-height: 90dvh; display: flex; flex-direction: column; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; color: var(--primary); cursor: pointer; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 10px;}
+        
+        .bottom-panel-content { overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; padding-bottom: 20px; }
+
+        .selected-services-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px dashed var(--border); }
+        .selected-list { max-height: 60px; overflow-y: auto; font-size: 12px; color: var(--muted); flex: 1; margin-right: 10px; }
+        .btn-add-service { background: var(--secondary); color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        
+        .date-btn { background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; cursor: pointer; margin-bottom: 5px; }
+        .date-picker { background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 8px; }
+        .cal-toggle { display: flex; gap: 10px; margin-bottom: 10px; }
+        .cal-toggle label { flex: 1; text-align: center; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: white; cursor: pointer; font-size: 12px; }
+        .cal-toggle input { display: none; }
+        .cal-toggle input:checked + label { background: var(--primary); color: white; border-color: var(--primary); }
+        .select-row { display: flex; gap: 5px; margin-bottom: 5px; }
+        .select-row select { flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-size: 13px; }
+        .submit-btn { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        .btn-go-to-form { background: var(--success); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; font-size: 15px; width: 100%; margin-top: 10px; cursor: pointer; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); display: flex; justify-content: center; align-items: center; gap: 10px; animation: pulse 1.5s infinite; }
+        .btn-back-to-services { background: #eff6ff; color: var(--secondary); border: 1px solid #bfdbfe; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; width: 100%; margin-bottom: 15px; cursor: pointer; }
+
+        .blog-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 15px; margin-bottom: 10px; }
+        .blog-title { font-weight: bold; color: var(--primary); margin-bottom: 8px; font-size: 15px; }
+        .blog-text { font-size: 13px; line-height: 1.6; color: var(--text); }
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
+        .modal-box { background: white; padding: 20px; border-radius: 15px; text-align: center; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
+        .modal-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        
+        .auth-box { background: white; padding: 25px 20px; border-radius: 20px; text-align: center; width: 100%; max-width: 350px; }
+        .auth-box h2 { font-size: 18px; color: var(--primary); margin-bottom: 10px; }
+        .auth-box p { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+        .auth-box input { width: 100%; padding: 15px; border: 2px solid var(--border); border-radius: 10px; font-size: 16px; text-align: center; letter-spacing: 2px; outline: none; transition: 0.3s; }
+        .auth-box input:focus { border-color: var(--secondary); }
+        .auth-box button { width: 100%; padding: 15px; background: var(--secondary); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; margin-top: 15px; cursor: pointer; }
+        
+        .loyalty-box { background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px; padding: 12px; margin-top: 15px; text-align: right; }
+        .loyalty-box h4 { font-size: 13px; color: #065f46; margin-bottom: 5px; }
+        .loyalty-box p { font-size: 12px; color: #065f46; }
+
+        .copyright-footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px; margin-bottom: 20px; padding: 15px; border-top: 1px dashed #cbd5e1; line-height: 1.8; }
+        .copyright-footer b { color: #64748b; }
+
+        .contact-prefs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; }
+        .pref-item { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+        .pref-item input { width: 18px; height: 18px; accent-color: var(--secondary); }
+        .pref-input { margin-top: 5px; font-size: 12px; padding: 6px; border: 1px solid #ccc; border-radius: 5px; width: 100%; display: none; }
+        .pref-item.checked + .pref-input { display: block; }
+
+        .stars-container { display: flex; gap: 5px; justify-content: center; font-size: 30px; cursor: pointer; color: #e2e8f0; margin-bottom: 15px; }
+        .stars-container span.active { color: #f59e0b; }
+    </style>
+</head>
+<body>
+
+<div id="app" class="container">
+    
+    <div class="mini-player-btn" @click="showMusicPanel = !showMusicPanel" v-if="!showMusicPanel">
+        🎵
+    </div>
+
+    <div class="music-panel" :class="{open: showMusicPanel}">
+        <div class="mp-header">
+            <span>🎧 رادیو و موزیک</span>
+            <button class="mp-close" @click="showMusicPanel = false">✖</button>
+        </div>
+        <div class="mp-body">
+            <div class="mp-track-info">
+                <div class="mp-track-name">{{ currentRadio.name }}</div>
+                <div class="mp-track-status">
+                    <span v-if="isPlaying" class="live-dot"></span> {{ isPlaying ? 'پخش زنده' : 'متوقف' }}
+                </div>
+            </div>
+            
+            <div class="mp-controls">
+                <button class="mp-btn-play" @click="togglePlay">{{ isPlaying ? '⏸' : '▶' }}</button>
+            </div>
+
+            <div class="mp-search-box">
+                <input type="text" v-model="radioSearchQuery" placeholder="🔍 جستجوی رادیو (مثلاً: جوان)...">
+            </div>
+
+            <div class="mp-stations-list">
+                <div class="mp-station-item" v-for="(radio, index) in filteredRadios" :key="index" :class="{active: currentRadio.name === radio.name}" @click="playRadio(radio)">
+                    <span>{{ radio.name }}</span>
+                    <span v-if="currentRadio.name === radio.name && isPlaying">▶</span>
+                </div>
+            </div>
+
+            <div class="mp-volume">
+                <span>🔈</span>
+                <input type="range" min="0" max="1" step="0.1" v-model="volume" @input="changeVolume">
+                <span>🔊</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-discount" @click="showDiscountModal = true">🎁</div>
+
+    <header class="header">
+        <img src="https://cdn.imgurl.ir/uploads/w366057_.png" alt="لوگو" class="header-logo">
+        <p>خدمات تخصصی نصب، تعمیر و سرویس</p>
+        <div class="contact-buttons">
+            <a href="tel:09198039245" class="contact-btn btn-call">📞 ۰۹۱۹۸۰۳۹۲۴۵</a>
+            <a href="tel:09399914451" class="contact-btn btn-call">📞 ۰۹۳۹۹۹۱۴۴۵۱</a>
+            <a href="https://g.co/kgs/81cR3Gb" target="_blank" class="contact-btn btn-map">📍 گوگل مپ</a>
+        </div>
+        <div class="social-links">
+            <a href="https://t.me/tasisate_andarzgo" target="_blank">✈️</a>
+            <a href="https://ble.ir/tasisateandarzgo" target="_blank">🔗</a>
+            <a href="https://rubika.ir/tasiisate_andarzgo" target="_blank">🔗</a>
+            <a href="https://www.instagram.com/tasisate_andarzgo" target="_blank">📸</a>
+        </div>
+    </header>
+
+    <div v-if="activeAd" class="main-card ad-banner">
+        <div class="ad-timer">⏱ {{ adTimeLeft }} ثانیه</div>
+        <div class="ad-title">📢 تبلیغات ویژه</div>
+        <p class="ad-text">{{ activeAd.text }}</p>
+        <div class="ad-disclaimer">
+            ⚠️ توجه: مسئولیت بررسی و انتخاب این تبلیغ بر عهده شماست. تاسیسات اندرزگو فقط نمایش‌دهنده است.
+        </div>
+    </div>
+
+    <div class="main-card">
+        <div class="main-card-title">📞 پشتیبانی و مشاوره تخصصی</div>
+        
+        <button class="btn-consult-online" @click="checkAuth('consult')" style="margin-bottom: 15px;">💬 ثبت درخواست مشاوره آنلاین</button>
+        
+        <div class="dash-btn" :class="{active: isContactOpen}" @click="isContactOpen = !isContactOpen">
+            <span>📱 راه‌های ارتباطی و تماس مستقیم</span>
+            <span>{{ isContactOpen ? '▲' : '▼' }}</span>
+        </div>
+        <div v-show="isContactOpen" class="sub-content">
+            <div class="consult-phones">
+                <a href="tel:09198039245" @click="trackEvent('call', '09198039245')"><span>📱</span> ۰۹۱۹۸۰۳۹۲۴۵</a>
+                <a href="tel:09399914451" @click="trackEvent('call', '09399914451')"><span>📱</span> ۰۹۳۹۹۹۱۴۴۵۱</a>
+                <a href="tel:02166681728" @click="trackEvent('call', '02166681728')"><span>☎️</span> ۰۲۱-۶۶۶۸۱۷۲۸</a>
+            </div>
+            <div class="comm-grid" style="margin-top: 15px;">
+                <a href="https://t.me/tasisate_andarzgo" target="_blank" class="comm-btn btn-tg" @click="trackEvent('telegram', 'header')">ارتباط در تلگرام</a>
+                <a href="https://ble.ir/tasisateandarzgo2" target="_blank" class="comm-btn btn-bale" @click="trackEvent('bale', 'header')">ارتباط در بله</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-card">
+        <div class="main-card-title">📦 میز خدمات مشتریان</div>
+        <div class="dashboard-grid">
+            
+            <a href="hamyaran.html" class="dash-btn" style="background: #f0fdf4; border-color: #86efac; color: #065f46;" @click.prevent="navigateHamyaran">
+                <span>🤝 باشگاه همیاران (کسب درآمد)</span>
+                <span class="dash-btn-icon">👈</span>
+            </a>
+            
+            <div class="dash-btn" :class="{active: isServicesOpen}" @click="isServicesOpen = !isServicesOpen">
+                <span>🛠️ لیست خدمات تاسیسات اندرزگو</span>
+                <span>{{ isServicesOpen ? '▲' : '▼' }}</span>
+            </div>
+            <div v-show="isServicesOpen" class="sub-content">
+                <input type="text" class="search-box" v-model="searchQuery" placeholder="🔍 جستجوی خدمت (مثلاً: تخت خواب، پکیج، تلویزیون)...">
+                
+                <div class="category-card" v-for="(cat, index) in filteredCategories" :key="index" :class="{open: cat.isOpen}">
+                    <div class="category-header" :class="{active: cat.isOpen}" @click="toggleCategory(cat.name)">
+                        <span>{{ cat.name }}</span><span>{{ cat.isOpen ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="category-items">
+                        <label class="service-item" v-for="srv in cat.items" :key="srv">
+                            <input type="checkbox" :value="srv" v-model="selectedServices">
+                            {{ srv }}
+                        </label>
+                    </div>
+                </div>
+                <div v-if="filteredCategories.length === 0" style="text-align:center; padding:10px; color:var(--muted);">موردی یافت نشد.</div>
+                
+                <button v-if="selectedServices.length > 0" class="btn-go-to-form" @click="checkAuth('request')">
+                    👈 مشاهده و تکمیل فرم ({{ selectedServices.length }} خدمت انتخاب شده)
+                </button>
+            </div>
+
+            <div class="dash-btn" :class="{active: isBlogOpen}" @click="isBlogOpen = !isBlogOpen">
+                <span>📚 مجله تاسیسات اندرزگو</span>
+                <span>{{ isBlogOpen ? '▲' : '▼' }}</span>
+            </div>
+            <div v-show="isBlogOpen" class="sub-content">
+                <div v-if="posts.length === 0" style="text-align:center; color:var(--muted); font-size:13px;">مقاله‌ای ثبت نشده است.</div>
+                <div class="blog-card" v-for="p in posts" :key="p.id">
+                    <div class="blog-title">{{ p.title }}</div>
+                    <div class="blog-text">{{ p.content }}</div>
+                </div>
+            </div>
+
+            <div class="dash-btn" :class="{active: isFeedbackOpen}" @click="isFeedbackOpen = !isFeedbackOpen" style="background:#f0f9ff; border-color:#bae6fd; color:#0369a1;">
+                <span>💬 انتقادات و پیشنهادات</span>
+                <span>{{ isFeedbackOpen ? '▲' : '▼' }}</span>
+            </div>
+            <div v-show="isFeedbackOpen" class="sub-content">
+                <p style="font-size:13px; margin-bottom:10px; color:var(--muted);">نظر شما برای ما بسیار ارزشمند است. لطفا ما را در بهبود خدمات یاری کنید.</p>
+                
+                <div class="stars-container">
+                    <span v-for="star in 5" :key="star" :class="{active: star <= feedback.rating}" @click="feedback.rating = star">★</span>
+                </div>
+                
+                <div class="form-group">
+                    <textarea v-model="feedback.text" rows="4" placeholder="نظر یا پیشنهاد خود را اینجا بنویسید..."></textarea>
+                </div>
+                <button class="submit-btn" style="background:var(--secondary);" @click="submitFeedback">📩 ارسال نظر</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-panel">
+        <div class="panel-header" @click="checkAuth('request')">
+            <span>👤 درخواست خدمات (برای تکمیل کلیک کنید)</span>
+            <span>{{ isFormOpen ? '▲' : '▼' }}</span>
+        </div>
+        
+        <div v-show="isFormOpen" class="bottom-panel-content">
+            <button class="btn-back-to-services" @click="goBackToServices">
+                ⬆️ بازگشت به لیست خدمات برای انتخاب بیشتر
+            </button>
+
+            <div v-if="isMovingOrder" style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 10px; margin-bottom: 15px; text-align: center; color: #92400e; font-size: 12px; font-weight: bold;">
+                🎁 شما در حال ثبت سفارش با تخفیف ویژه جابه‌جایی هستید.
+            </div>
+
+            <div class="selected-list">
+                <span v-for="s in selectedServices" :key="s" style="background:#e2e8f0; padding:2px 6px; border-radius:5px; margin:2px; display:inline-block;">{{ s }}</span>
+                <span v-if="selectedServices.length === 0">هنوز خدمتی انتخاب نشده است.</span>
+            </div>
+            
+            <div class="form-group">
+                <select v-model="form.gender" style="padding: 12px;">
+                    <option value="" disabled>جنسیت (آقا / خانم)</option>
+                    <option value="آقا">آقا</option>
+                    <option value="خانم">خانم</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <input type="text" v-model="form.name" @input="validateName" :class="{'error-input': nameError}" placeholder="نام و نام خانوادگی (فقط فارسی)">
+                <span class="error-text" v-if="nameError">{{ nameError }}</span>
+            </div>
+            
+            <div class="form-group">
+                <input type="tel" v-model="form.phone" @input="validatePhone" :class="{'error-input': phoneError}" :readonly="isRegistered" :style="isRegistered ? 'background:#e2e8f0; cursor:not-allowed;' : ''" placeholder="شماره تماس (09123456789)" dir="ltr" maxlength="11" inputmode="numeric">
+                <span class="success-text" v-if="operatorName && !phoneError">اپراتور: {{ operatorName }}</span>
+                <span class="error-text" v-if="phoneError">{{ phoneError }}</span>
+            </div>
+            
+            <div class="form-group">
+                <input type="text" v-model="form.address" placeholder="آدرس دقیق (الزامی)">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display:block; font-size:12px; font-weight:bold; margin-bottom:5px; color:var(--muted);">راه ارتباطی ترجیحی (اختیاری - برای تماس سریع‌تر)</label>
+                <div class="contact-prefs-grid">
+                    <div>
+                        <label class="pref-item" :class="{checked: prefs.sms}">
+                            <input type="checkbox" v-model="prefs.sms"> 📱 پیامک
+                        </label>
+                        <input type="text" v-if="prefs.sms" v-model="prefIds.sms" class="pref-input" placeholder="شماره پیامک" style="display:block; margin-top:5px;">
+                    </div>
+                    <div>
+                        <label class="pref-item" :class="{checked: prefs.call}">
+                            <input type="checkbox" v-model="prefs.call"> 📞 تماس تلفنی
+                        </label>
+                        <input type="text" v-if="prefs.call" v-model="prefIds.call" class="pref-input" placeholder="شماره تماس" style="display:block; margin-top:5px;">
+                    </div>
+                    <div>
+                        <label class="pref-item" :class="{checked: prefs.telegram}">
+                            <input type="checkbox" v-model="prefs.telegram"> ✈️ تلگرام
+                        </label>
+                        <input type="text" v-if="prefs.telegram" v-model="prefIds.telegram" class="pref-input" placeholder="آیدی/شماره تلگرام" style="display:block; margin-top:5px;">
+                    </div>
+                    <div>
+                        <label class="pref-item" :class="{checked: prefs.whatsapp}">
+                            <input type="checkbox" v-model="prefs.whatsapp"> 🟢 واتس‌اپ
+                        </label>
+                        <input type="text" v-if="prefs.whatsapp" v-model="prefIds.whatsapp" class="pref-input" placeholder="شماره واتس‌اپ" style="display:block; margin-top:5px;">
+                    </div>
+                    <div>
+                        <label class="pref-item" :class="{checked: prefs.bale}">
+                            <input type="checkbox" v-model="prefs.bale"> 🔗 بله
+                        </label>
+                        <input type="text" v-if="prefs.bale" v-model="prefIds.bale" class="pref-input" placeholder="آیدی بله" style="display:block; margin-top:5px;">
+                    </div>
+                    <div>
+                        <label class="pref-item" :class="{checked: prefs.instagram}">
+                            <input type="checkbox" v-model="prefs.instagram"> 📸 اینستاگرام
+                        </label>
+                        <input type="text" v-if="prefs.instagram" v-model="prefIds.instagram" class="pref-input" placeholder="آیدی اینستاگرام" style="display:block; margin-top:5px;">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>تاریخ و ساعت درخواست</label>
+                <div class="date-btn" @click="showDatePicker = !showDatePicker">
+                    <span>📅 {{ getFormattedDate }}</span>
+                    <span>{{ showDatePicker ? '▲' : '▼' }}</span>
+                </div>
+                <div class="date-picker" v-show="showDatePicker">
+                    <div class="cal-toggle">
+                        <input type="radio" id="j" value="jalali" v-model="form.calType"><label for="j">شمسی</label>
+                        <input type="radio" id="g" value="gregorian" v-model="form.calType"><label for="g">میلادی</label>
+                    </div>
+                    <div class="select-row">
+                        <select v-model="form.day"><option v-for="d in 31" :value="d">{{ d }}</option></select>
+                        <select v-model="form.month"><option v-for="m in 12" :value="m">{{ m }}</option></select>
+                        <select v-model="form.year"><option v-for="y in availableYears" :value="y">{{ y }}</option></select>
+                    </div>
+                    <div class="select-row">
+                        <select v-model="form.hour"><option v-for="h in 24" :value="h-1">{{ (h-1).toString().padStart(2,'0') }}</option></select>
+                        <select v-model="form.minute"><option v-for="m in 60" :value="m-1">{{ (m-1).toString().padStart(2,'0') }}</option></select>
+                    </div>
+                </div>
+            </div>
+            <button class="submit-btn" @click="submitRequest">📋 ثبت و ارسال درخواست</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" :style="{display: showDiscountModal ? 'flex' : 'none'}">
+        <div class="modal-box" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b;">
+            <h3 style="color: #92400e; margin-bottom: 10px;">🎁 تخفیف ویژه اسباب‌کشی!</h3>
+            <p style="color: #92400e; font-size: 14px; line-height: 1.8; text-align: justify;">
+                در حال اسباب‌کشی و جابه‌جایی هستید؟ آیا می‌دانستید باز و نصب مجدد لوازم خانگی (از تلویزیون و یخچال گرفته تا کولر گازی) اگر توسط تکنسین‌های متخصص انجام نشود، می‌تواند به دستگاه‌های شما آسیب جدی بزند؟<br><br>
+                تاسیسات اندرزگو با سال‌ها تجربه، تمامی خدمات نصب، بازکردن و راه‌اندازی لوازم خانگی را با گارانتی و بیمه به شما ارائه می‌دهد.<br><br>
+                <b>هرچه زودتر سفارش دهید، تخفیف بیشتری می‌گیرید! (تا ۱۵٪ تخفیف ویژه)</b>
+            </p>
+            <button @click="startMovingOrder" class="submit-btn" style="background: #f59e0b; margin-top: 15px; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);">📝 ثبت سفارش با تخفیف</button>
+            <button @click="showDiscountModal = false" style="width: 100%; padding: 12px; background: transparent; color: #92400e; border: 1px solid #f59e0b; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px;">بستن (متوجه شدم)</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" :style="{display: showAuthModal ? 'flex' : 'none'}">
+        <div class="auth-box">
+            <h2>🔐 ورود سریع</h2>
+            <p>برای استفاده از این بخش، لطفاً شماره موبایل خود را وارد کنید تا در سیستم ثبت شوید.</p>
+            <input type="tel" v-model="authPhone" @input="validateAuthPhone" :class="{'error-input': authError}" placeholder="09123456789" dir="ltr" maxlength="11" inputmode="numeric">
+            <span class="error-text" v-if="authError" style="text-align:center; margin-top:5px;">{{ authError }}</span>
+            <button @click="submitAuth">ادامه</button>
+            <button @click="showAuthModal = false" style="background:transparent; color:var(--muted); box-shadow:none; margin-top:10px;">انصراف</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" :style="{display: showModal ? 'flex' : 'none'}">
+        <div class="modal-box">
+            <h3 style="color:var(--success); margin-bottom:10px;">✅ ثبت شد!</h3>
+            <div style="background: #eff6ff; border: 1px dashed var(--secondary); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                <span style="font-size: 13px; color: var(--muted);">کد رهگیری شما:</span>
+                <div style="font-size: 18px; font-weight: bold; color: var(--primary); letter-spacing: 2px;">{{ trackingCode }}</div>
+            </div>
+            
+            <div class="loyalty-box">
+                <h4>⭐ کد طلایی مشتریان وفادار</h4>
+                <p>از این پس شما مشتری ویژه ما هستید! برای سفارشات بعدی خود از کد زیر استفاده کنید تا ۱۰٪ تخفیف بگیرید (با هماهنگی قبلی):<br><b style="font-size:14px; letter-spacing:1px;" id="loyaltyCode">{{ loyaltyCode }}</b></p>
+            </div>
+
+            <p style="font-size:12px; color:var(--muted); margin-top:10px;">برای ارسال سریع، پیام‌رسان را انتخاب کنید:</p>
+            <div class="modal-btns">
+                <a href="https://t.me/tasisate_andarzgo" target="_blank" class="comm-btn btn-tg">ارسال در تلگرام</a>
+                <a href="https://ble.ir/tasisateandarzgo2" target="_blank" class="comm-btn btn-bale">ارسال در بله</a>
+                <a href="https://wa.me/989198039245" target="_blank" class="comm-btn btn-wa">ارسال در واتس‌اپ</a>
+                <button @click="showModal = false" style="padding:10px; border:none; background:#ccc; border-radius:8px; font-weight:bold; cursor:pointer;">بستن</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="copyright-footer">
+        <p>© تمامی حقوق مادی و معنوی برای <b>تاسیسات اندرزگو</b> محفوظ است.</p>
+        <p>این پنل اختصاصی تاسیسات اندرزگو می‌باشد. کپی‌برداری از سایت بدون هماهنگی، شرعاً و قانوناً جایز نیست.</p>
+    </div>
+</div>
+
+<script>
+    const WORKER_URL = "https://andarzgo-worker.andarzgo1400.workers.dev/api/order";
+
+    const today = new Date();
+    const cleanJalali = today.toLocaleDateString('fa-IR', { year: 'numeric', month: 'numeric', day: 'numeric' }).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).split('/');
+    
+    const currentYear = parseInt(cleanJalali[0]) || 1403;
+    const currentMonth = parseInt(cleanJalali[1]) || 1;
+    const currentDay = parseInt(cleanJalali[2]) || 1;
+
+    const defaultPosts = [
+        { id: '1', title: 'سرویس دوره‌ای کولر گازی', content: 'برای جلوگیری از خرابی و کاهش مصرف برق، بهتر است هر سال قبل از شروع تابستان فیلترهای کولر گازی را تمیز کنید.' },
+        { id: '2', title: 'جلوگیری از ترکیدگی لوله در زمستان', content: 'با سرد شدن هوا، خطر یخ‌زدگی لوله‌های آب در پشت‌بام وجود دارد. عایق‌بندی صحیح لوله‌ها را جدی بگیرید.' }
+    ];
+
+    new Vue({
+        el: '#app',
+        data: {
+            isRegistered: localStorage.getItem('andarzgo_user_phone') ? true : false,
+            userPhone: localStorage.getItem('andarzgo_user_phone') || '',
+            showAuthModal: false,
+            showDiscountModal: false,
+            authPhone: '',
+            authError: '',
+            targetAction: '',
+            isMovingOrder: false,
+
+            // --- متغیرهای پلیر موزیک ---
+            showMusicPanel: false,
+            isPlaying: false,
+            volume: 0.8,
+            audio: null,
+            radioSearchQuery: '',
+            currentRadio: { name: 'رادیو جوان', url: 'https://radio.sr-api.ir/hls/stream.m3u8' },
+            
+            // لیست جدید شامل رادیوهای ایرانی، سراسری، استانی و خارجی
+            radios: [
+                // --- رادیوهای سراسری ایران ---
+                { name: 'رادیو جوان', url: 'https://radio.sr-api.ir/hls/stream.m3u8' },
+                { name: 'رادیو ایران', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-iran/playlist.m3u8' },
+                { name: 'رادیو پیام', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-payam/playlist.m3u8' },
+                { name: 'رادیو آوا', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-ava/playlist.m3u8' },
+                { name: 'رادیو ورزش', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-varzesh/playlist.m3u8' },
+                { name: 'رادیو فرهنگ', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-farhang/playlist.m3u8' },
+                { name: 'رادیو نمایش', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-namayesh/playlist.m3u8' },
+                { name: 'رادیو معارف', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-maaref/playlist.m3u8' },
+                { name: 'رادیو قرآن', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-quran/playlist.m3u8' },
+                { name: 'رادیو گفتگو', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-goftogo/playlist.m3u8' },
+                { name: 'رادیو اقتصاد', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-eghtesad/playlist.m3u8' },
+                { name: 'رادیو سلامت', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-salamat/playlist.m3u8' },
+                { name: 'رادیو تهران', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-tehran/playlist.m3u8' },
+                
+                // --- رادیوهای استانی ---
+                { name: 'رادیو البرز', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-alborz/playlist.m3u8' },
+                { name: 'رادیو اصفهان', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-isfahan/playlist.m3u8' },
+                { name: 'رادیو خراسان رضوی', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-khorasanrazavi/playlist.m3u8' },
+                { name: 'رادیو فارس', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-fars/playlist.m3u8' },
+                { name: 'رادیو آذربایجان شرقی', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-azarbaijansharghi/playlist.m3u8' },
+                { name: 'رادیو خوزستان', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-khouzestan/playlist.m3u8' },
+                { name: 'رادیو گیلان', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-gilan/playlist.m3u8' },
+                { name: 'رادیو مازندران', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-mazandaran/playlist.m3u8' },
+                { name: 'رادیو کرمان', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-kerman/playlist.m3u8' },
+                { name: 'رادیو یزد', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-yazd/playlist.m3u8' },
+                { name: 'رادیو هرمزگان', url: 'http://s1.cdn1.iranseda.ir:1935/liveedge/radio-hormozgan/playlist.m3u8' },
+
+                // --- رادیوهای اینترنتی و خارجی ---
+                { name: 'رادیو فردا (Radio Farda)', url: 'https://stream.radiojar.com/8n8q23f9tvuv' },
+                { name: 'رادیو جوان (Radio Javan)', url: 'https://stream.radiojar.com/8s5p2h9z6tvuv' },
+                { name: 'رادیو نوا (Radio Nava)', url: 'https://stream.radiojar.com/4wqre23f9tvuv' },
+                { name: 'Iran International', url: 'https://stream.radiojar.com/iintl_c' },
+                { name: 'رادیو نوآهنگ (Radio Navahang)', url: 'https://navairan.com/;stream.nsv' },
+                { name: 'Lofi Girl (لوفای)', url: 'https://streams.ilovemusic.de/iloveradio17.mp3' },
+                { name: 'SomaFM Groove Salad (چیل)', url: 'https://ice1.somafm.com/groovesalad-128-mp3' },
+                { name: 'Radio Paradise (راک)', url: 'https://stream.radioparadise.com/mp3-128' },
+                { name: 'Classical KUSC (کلاسیک)', url: 'https://live.musopen.org:8085/streamvbr0' },
+                { name: 'BBC Radio 1', url: 'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_one' }
+            ],
+
+            isContactOpen: false, 
+            isServicesOpen: false, isBlogOpen: false, isFormOpen: false,
+            isFeedbackOpen: false,
+            showDatePicker: false, showModal: false, searchQuery: '',
+            referrerPhone: '',
+            trackingCode: '',
+            loyaltyCode: '',
+
+            activeAd: null,
+            adTimeLeft: 0,
+            adTimerInterval: null,
+            
+            form: {
+                name: '', phone: localStorage.getItem('andarzgo_user_phone') || '', address: '', gender: '', calType: 'jalali',
+                year: currentYear, month: currentMonth, day: currentDay,
+                hour: today.getHours(), minute: today.getMinutes()
+            },
+            prefs: { sms: false, call: false, telegram: false, whatsapp: false, bale: false, instagram: false },
+            prefIds: { sms: '', call: '', telegram: '', whatsapp: '', bale: '', instagram: '' },
+
+            feedback: { rating: 0, text: '' },
+
+            selectedServices: [],
+            posts: JSON.parse(localStorage.getItem('andarzgo_posts')) || defaultPosts,
+            consult: { name: '', phone: '', text: '' },
+            consultErrors: { name: '', phone: '' },
+            nameError: '', phoneError: '', operatorName: '',
+            
+            validPrefixes: {
+                '0910':'همراه اول','0911':'همراه اول','0912':'همراه اول','0913':'همراه اول','0914':'همراه اول','0915':'همراه اول','0916':'همراه اول','0917':'همراه اول','0918':'همراه اول','0919':'همراه اول',
+                '0990':'همراه اول','0991':'همراه اول','0992':'همراه اول','0993':'همراه اول','0994':'همراه اول',
+                '0900':'ایرانسل','0901':'ایرانسل','0902':'ایرانسل','0903':'ایرانسل','0904':'ایرانسل','0905':'ایرانسل',
+                '0930':'ایرانسل','0933':'ایرانسل','0935':'ایرانسل','0936':'ایرانسل','0937':'ایرانسل','0938':'ایرانسل','0939':'ایرانسل',
+                '0941':'ایرانسل','0920':'رایتل','0921':'رایتل','0922':'رایتل','0923':'رایتل','0932':'تالیا','0934':'تله‌کیش','0998':'شاتل','0931':'اسپادان'
+            },
+            persianRegex: /^[\u0600-\u06FF\s]+$/,
+            
+            categories: [
+                { name: '⚡ ۱. خدمات برقکاری', isOpen: false, items: ['سیم‌کشی توکار', 'سیم‌کشی روکار', 'نصب کلید محافظ جان', 'نصب لوستر', 'نصب پنل برق', 'رفع اتصالی', 'نصب ارت', 'تعمیر تابلو برق', 'نصب کلید و پریز', 'سیم‌کشی کولر آبی', 'نصب جعبه فیوز', 'تعمیر جک پارکینگ برقی'] },
+                { name: '🛏️ ۲. نصاب تخت خواب (مونتاژ و تعمیر)', isOpen: false, items: ['باز کردن تخت برای اسباب‌کشی', 'مونتاژ و نصب تخت نو', 'نصب تخت جک‌دار و باکسی', 'نصب تخت تاشو و دیواری', 'نصب تخت دوطبقه و کودک', 'تعمیر شکستگی بدنه و پایه تخت', 'تعمیر و تعویض جک تخت', 'تعمیر مکانیزم تخت تاشو', 'تعمیر ریل کشو و کمد تخت', 'رفع صدای جیرجیر و لق‌زدن تخت', 'ساخت و تغییر ابعاد تخت سفارشی'] },
+                { name: '🚰 ۳. خدمات لوله‌کشی و آب', isOpen: false, items: ['لوله‌کشی آب سرد و گرم', 'رفع نشتی', 'تعمیر شیرآلات', 'نصب پکیج', 'تعویض لوله آب', 'بازکردن گرفتگی', 'نصب کنتور آب', 'تعمیر شناژ', 'نصب آبگرمکن دیواری', 'لوله‌کشی فاضلاب', 'نصب شیر قطع کن', 'رفع بوی بد فاضلاب'] },
+                { name: '❄️ ۴. کولر گازی و اسپلیت', isOpen: false, items: ['نصب اسپلیت', 'شارژ گاز', 'سرویس دوره‌ای', 'تعمیر برد', 'تعمیر کمپرسور', 'نصب دودکش', 'تعمیر فن', 'تعمیر ریموت', 'نصب کولر گازی پنجره‌ای', 'تعویض فیلتر', 'نصب پایه کولر', 'تعمیر نشتی گاز'] },
+                { name: '🌬️ ۵. کولر آبی (Evaporative)', isOpen: false, items: ['سرویس کولر آبی', 'تعویض پوشال', 'تعمیر پمپ آب', 'تعمیر موتور کولر', 'نصب کولر آبی', 'تعویض شناور', 'تعمیر دریچه', 'راه‌اندازی کولر', 'تعویض کانال کولر', 'نصب دمپر'] },
+                { name: '🔥 ۶. پکیج و شوفاژ', isOpen: false, items: ['نصب پکیج', 'تعمیر پکیج', 'سرویس پکیج', 'تعمیر شوفاژ', 'نصب رادیاتور', 'تعویض شیر پکیج', 'رفع خطای پکیج', 'شارژ آب پکیج', 'تعویض مبدل پکیج', 'تعمیر فن پکیج', 'نصب ترموستات'] },
+                { name: '📺 ۷. نصب لوازم خانگی (ریز و درشت)', isOpen: false, items: ['نصب تلویزیون', 'نصب یخچال فریزر', 'نصب ماشین لباسشویی', 'نصب ماشین ظرفشویی', 'نصب مایکروویو', 'نصب اجاق گاز', 'نصب هود آشپزخانه', 'نصب ماشین اسپرسو', 'نصب تصفیه آب', 'نصب جاروبرقی مرکزی', 'نصب کولر گازی', 'نصب آبگرمکن', 'نصب پکیج', 'نصب ماشین بخارشو', 'نصب سینک ظرفشویی', 'نصب روشویی', 'نصب کابینت', 'باز و نصب کمد دیواری', 'نصب لوستر و چراغ'] },
+                { name: '🔧 ۸. تعمیرات لوازم خانگی', isOpen: false, items: ['تعمیر یخچال', 'تعمیر لباسشویی', 'تعمیر ظرفشویی', 'تعمیر مایکروویو', 'تعمیر کولر گازی', 'تعمیر پکیج', 'تعمیر آبگرمکن', 'تعمیر پمپ آب', 'تعمیر اجاق گاز', 'تعمیر هود', 'تعمیر ماشین اسپرسو', 'تعمیر جاروبرقی', 'تعمیر تصفیه آب', 'تعویض برد یخچال', 'تعویض موتور لباسشویی'] },
+                { name: '🚿 ۹. حمام و سرویس بهداشتی', isOpen: false, items: ['نصب دوش', 'تعمیر شیر دوش', 'نصب توالت', 'تعمیر سیفون', 'نصب روشویی', 'تعمیر شیرآلات', 'رفع گرفتگی', 'نصب وان', 'نصب کابینت روشویی', 'تعویض فلاش تانک', 'نصب شلنگ بهداشتی'] },
+                { name: '🏠 ۱۰. تاسیسات ساختمان', isOpen: false, items: ['لوله‌کشی گاز', 'نصب رادیاتور', 'عایق‌بندی لوله', 'نصب کف‌خواب', 'سیستم گرمایش از کف', 'تعمیر موتورخانه', 'نصب چیلر', 'تعمیر فن کویل', 'نصب هواساز', 'تعمیر دیگ شوفاژ'] },
+                { name: '🛠️ ۱۱. نصب و تعمیر تجهیزات', isOpen: false, items: ['نصب دوربین مداربسته', 'نصب آیفون تصویری', 'نصب دزدگیر', 'نصب جک پارکینگ', 'تعمیر درب برقی', 'نصب کرکره برقی', 'نصب قفل برقی', 'تعمیر آیفون', 'نصب آنتن مرکزی'] },
+                { name: '🔍 ۱۲. تشخیص و عیب‌یابی', isOpen: false, items: ['نشتی‌یابی لوله', 'عیب‌یابی برق', 'عیب‌یابی کولر', 'عیب‌یابی پکیج', 'تست فشار لوله', 'عیب‌یابی یخچال', 'عیب‌یابی برد الکترونیک'] },
+                { name: '🧹 ۱۳. خدمات نظافتی و نگهداری', isOpen: false, items: ['نظافت پشت‌بام', 'تمیزکاری موتورخانه', 'شستشوی کولر', 'شستشوی پکیج', 'سرویس دوره‌ای', 'شستشوی کانال کولر', 'رسوب‌زدایی پکیج'] },
+                { name: '🪚 ۱۴. خدمات ساختمانی و بازسازی', isOpen: false, items: ['کاشی‌کاری', 'نقاشی ساختمان', 'گچ‌کاری', 'کناف کاری', 'نصب پارکت', 'نصب کاغذ دیواری', 'تعمیر پنجره دوجداره', 'نصب توری پنجره', 'سیمان کاری'] }
+            ]
+        },
+        mounted() {
+            const urlParams = new URLSearchParams(window.location.search);
+            this.referrerPhone = urlParams.get('ref') || '';
+            
+            if (this.isRegistered) {
+                this.form.phone = this.userPhone;
+                this.validatePhone();
+            }
+
+            this.loadActiveAd();
+            this.initAnalytics();
+            this.initMusic();
+        },
+        computed: {
+            availableYears() {
+                let y = []; let current = this.form.calType === 'jalali' ? 1403 : 2024;
+                for (let i = current - 30; i <= current + 10; i++) y.push(i);
+                return y;
+            },
+            filteredCategories() {
+                if (!this.searchQuery.trim()) return this.categories;
+
+                const normalize = (str) => {
+                    if(!str) return '';
+                    return str.replace(/ي/g, 'ی').replace(/ك/g, 'ک').toLowerCase().trim();
+                };
+
+                const q = normalize(this.searchQuery);
+
+                return this.categories.map(cat => {
+                    const matchCat = normalize(cat.name).includes(q);
+                    const matchItems = cat.items.filter(i => normalize(i).includes(q));
+                    
+                    if (matchCat || matchItems.length > 0) {
+                        return { 
+                            ...cat, 
+                            isOpen: true,
+                            items: matchCat ? cat.items : matchItems 
+                        };
+                    }
+                    return null;
+                }).filter(c => c !== null);
+            },
+            getFormattedDate() {
+                let type = this.form.calType === 'jalali' ? 'شمسی' : 'میلادی';
+                return `${type} ${this.form.year}/${this.form.month}/${this.form.day} - ${this.form.hour.toString().padStart(2,'0')}:${this.form.minute.toString().padStart(2,'0')}`;
+            },
+            filteredRadios() {
+                if(!this.radioSearchQuery.trim()) return this.radios;
+                return this.radios.filter(r => r.name.includes(this.radioSearchQuery));
+            }
+        },
+        methods: {
+            // ================= توابع پلیر شناور =================
+            initMusic() {
+                this.audio = new Audio();
+                this.audio.volume = this.volume;
+            },
+            togglePlay() {
+                if (!this.audio) return;
+                if (this.isPlaying) {
+                    this.audio.pause();
+                    this.isPlaying = false;
+                } else {
+                    if(this.audio.src !== this.currentRadio.url) {
+                        this.audio.src = this.currentRadio.url;
+                    }
+                    this.audio.play()
+                        .then(() => { this.isPlaying = true; })
+                        .catch(e => {
+                            alert('خطا در پخش رادیو. ممکن است لینک موقتاً قطع باشد.');
+                            this.isPlaying = false;
+                        });
+                }
+            },
+            playRadio(radio) {
+                this.currentRadio = radio;
+                this.isPlaying = true;
+                if (this.audio) {
+                    this.audio.src = radio.url;
+                    this.audio.play()
+                        .catch(e => { 
+                            this.isPlaying = false;
+                            alert('این ایستگاه در حال حاضر در دسترس نیست.');
+                        });
+                }
+            },
+            changeVolume() {
+                if (this.audio) {
+                    this.audio.volume = this.volume;
+                }
+            },
+
+            // ================= سایر توابع =================
+            initAnalytics() {
+                let visitorId = localStorage.getItem('andarzgo_visitor_id');
+                if (!visitorId) {
+                    visitorId = 'V-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
+                    localStorage.setItem('andarzgo_visitor_id', visitorId);
+                    
+                    let analytics = JSON.parse(localStorage.getItem('andarzgo_analytics')) || { totalVisits: 0, uniqueVisitors: [], events: [] };
+                    analytics.totalVisits++;
+                    analytics.uniqueVisitors.push(visitorId);
+                    localStorage.setItem('andarzgo_analytics', JSON.stringify(analytics));
+                }
+                
+                if(!sessionStorage.getItem('andarzgo_page_start')) {
+                    sessionStorage.setItem('andarzgo_page_start', Date.now());
+                }
+
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'hidden') {
+                        let start = parseInt(sessionStorage.getItem('andarzgo_page_start'));
+                        if(start) {
+                            let duration = Math.floor((Date.now() - start) / 1000); 
+                            this.trackEvent('time_spent', duration + ' ثانیه');
+                            sessionStorage.removeItem('andarzgo_page_start');
+                        }
+                    } else if (document.visibilityState === 'visible') {
+                        sessionStorage.setItem('andarzgo_page_start', Date.now());
+                    }
+                });
+            },
+            trackEvent(action, detail) {
+                let analytics = JSON.parse(localStorage.getItem('andarzgo_analytics')) || { totalVisits: 0, uniqueVisitors: [], events: [] };
+                analytics.events.push({
+                    visitorId: localStorage.getItem('andarzgo_visitor_id'),
+                    action: action, detail: detail, time: new Date().toISOString()
+                });
+                if(analytics.events.length > 500) analytics.events.shift();
+                localStorage.setItem('andarzgo_analytics', JSON.stringify(analytics));
+            },
+
+            loadActiveAd() {
+                let allAds = JSON.parse(localStorage.getItem('andarzgo_ads')) || [];
+                let active = allAds.find(a => a.status === 'active');
+                if(active) {
+                    this.activeAd = active;
+                    this.adTimeLeft = active.duration;
+                    this.startAdTimer(active.id);
+
+                    let adStats = JSON.parse(localStorage.getItem('andarzgo_ad_stats')) || {};
+                    if(!adStats[active.id]) adStats[active.id] = { views: [], clicks: 0 };
+                    
+                    let vid = localStorage.getItem('andarzgo_visitor_id');
+                    if(!adStats[active.id].views.includes(vid)) {
+                        adStats[active.id].views.push(vid);
+                        localStorage.setItem('andarzgo_ad_stats', JSON.stringify(adStats));
+                    }
+                }
+            },
+            startAdTimer(adId) {
+                if(this.adTimerInterval) clearInterval(this.adTimerInterval);
+                this.adTimerInterval = setInterval(() => {
+                    if(this.adTimeLeft > 0) {
+                        this.adTimeLeft--;
+                    } else {
+                        clearInterval(this.adTimerInterval);
+                        this.archiveAd(adId);
+                        this.activeAd = null;
+                        this.loadActiveAd();
+                    }
+                }, 1000);
+            },
+            archiveAd(adId) {
+                let allAds = JSON.parse(localStorage.getItem('andarzgo_ads')) || [];
+                let idx = allAds.findIndex(a => a.id === adId);
+                if(idx > -1) {
+                    allAds[idx].status = 'archived';
+                    localStorage.setItem('andarzgo_ads', JSON.stringify(allAds));
+                }
+            },
+
+            submitFeedback() {
+                if(this.feedback.rating === 0) return alert('لطفاً امتیاز خود را با ستاره‌ها مشخص کنید.');
+                if(!this.feedback.text.trim()) return alert('لطفاً متن نظر خود را بنویسید.');
+                
+                let allFeedback = JSON.parse(localStorage.getItem('andarzgo_feedback')) || [];
+                allFeedback.push({
+                    id: Date.now().toString(), rating: this.feedback.rating, text: this.feedback.text,
+                    date: new Date().toLocaleDateString('fa-IR'), time: new Date().toLocaleTimeString('fa-IR'),
+                    visitorId: localStorage.getItem('andarzgo_visitor_id'), reply: ''
+                });
+                localStorage.setItem('andarzgo_feedback', JSON.stringify(allFeedback));
+                
+                this.feedback = { rating: 0, text: '' };
+                this.isFeedbackOpen = false;
+                alert('✅ نظر شما با موفقیت ثبت شد. از بابت وقتی که گذاشتید سپاسگزاریم.');
+                this.trackEvent('feedback_submitted', 'rating_' + this.feedback.rating);
+            },
+
+            navigateHamyaran() {
+                if (this.isRegistered) {
+                    window.location.href = 'hamyaran.html';
+                } else {
+                    this.targetAction = 'hamyaran';
+                    this.showAuthModal = true;
+                }
+            },
+
+            cleanPhoneNumber(val) {
+                if (!val) return '';
+                let str = val.toString().replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+                str = str.replace(/[^0-9]/g, ''); 
+                return str.slice(0, 11); 
+            },
+
+            goBackToServices() {
+                this.isFormOpen = false;
+                this.isServicesOpen = true;
+                setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 100);
+            },
+
+            startMovingOrder() {
+                this.showDiscountModal = false;
+                this.isMovingOrder = true;
+                this.checkAuth('request');
+            },
+
+            checkAuth(action) {
+                if (this.isRegistered) { this.executeAction(action); } 
+                else { this.targetAction = action; this.showAuthModal = true; }
+            },
+            
+            validateAuthPhone() {
+                this.authPhone = this.cleanPhoneNumber(this.authPhone);
+                if (this.authPhone.length === 0) { this.authError = ''; return; }
+                if (this.authPhone.length < 11) { this.authError = 'شماره باید ۱۱ رقم باشد.'; return; }
+                if (!this.authPhone.startsWith('09')) { this.authError = 'شماره باید با ۰۹ شروع شود.'; return; }
+                
+                const prefix = this.authPhone.substring(0, 4);
+                if (this.validPrefixes[prefix]) { this.authError = ''; }
+                else { this.authError = 'پیش‌شماره معتبر نیست!'; }
+            },
+            
+            submitAuth() {
+                this.validateAuthPhone();
+                if (this.authError || this.authPhone.length < 11) return;
+                
+                this.isRegistered = true;
+                this.userPhone = this.authPhone;
+                this.form.phone = this.authPhone; 
+                localStorage.setItem('andarzgo_user_phone', this.authPhone);
+                
+                fetch(WORKER_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'new_lead', phone: this.authPhone, date: new Date().toISOString() })
+                }).catch(e => console.log('ثبت لید:', e));
+
+                this.showAuthModal = false;
+                this.executeAction(this.targetAction);
+            },
+            
+            executeAction(action) {
+                if (action === 'consult') {
+                    this.isFormOpen = true;
+                    setTimeout(() => { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }, 100);
+                }
+                if (action === 'hamyaran') { window.location.href = 'hamyaran.html'; }
+                if (action === 'request') {
+                    this.isFormOpen = true;
+                    setTimeout(() => { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }, 100);
+                }
+            },
+
+            toggleCategory(catName) {
+                const originalCat = this.categories.find(c => c.name === catName);
+                if (!originalCat) return;
+                const isOpening = !originalCat.isOpen;
+                this.categories.forEach(c => c.isOpen = false);
+                if (isOpening) originalCat.isOpen = true;
+            },
+            
+            validateName() {
+                if (!this.form.name) this.nameError = '';
+                else if (!this.persianRegex.test(this.form.name)) this.nameError = 'فقط حروف فارسی مجاز است.';
+                else this.nameError = '';
+            },
+            
+            validatePhone() {
+                this.form.phone = this.cleanPhoneNumber(this.form.phone);
+                if (this.form.phone.length === 0) { this.phoneError = ''; this.operatorName = ''; return; }
+                if (this.form.phone.length < 11) { this.phoneError = 'شماره باید ۱۱ رقم باشد.'; this.operatorName = ''; }
+                else if (!this.form.phone.startsWith('09')) { this.phoneError = 'شماره باید با ۰۹ شروع شود.'; this.operatorName = ''; }
+                else {
+                    const prefix = this.form.phone.substring(0, 4);
+                    if (this.validPrefixes[prefix]) { this.operatorName = this.validPrefixes[prefix]; this.phoneError = ''; }
+                    else { this.operatorName = ''; this.phoneError = 'پیش‌شماره معتبر نیست!'; }
+                }
+            },
+            
+            submitRequest() {
+                if (this.selectedServices.length === 0) return alert('لطفاً حداقل یک خدمت را انتخاب کنید.');
+                if (!this.form.gender) return alert('لطفاً جنسیت خود را انتخاب کنید.');
+                if (this.nameError || this.phoneError || !this.form.name || !this.form.phone || !this.form.address) {
+                    return alert('لطفاً تمام فیلدها (نام، شماره، آدرس) را به دقت تکمیل کنید.');
+                }
+                
+                this.trackingCode = 'AND-' + Math.floor(10000 + Math.random() * 90000);
+                
+                let hash = 0;
+                for (let i = 0; i < this.form.phone.length; i++) { hash = ((hash << 5) - hash) + this.form.phone.charCodeAt(i); hash |= 0; }
+                this.loyaltyCode = 'GOLD-' + Math.abs(hash).toString().substring(0, 5);
+
+                let contactPreferences = [];
+                if(this.prefs.sms) contactPreferences.push(`پیامک: ${this.prefIds.sms || this.form.phone}`);
+                if(this.prefs.call) contactPreferences.push(`تماس: ${this.prefIds.call || this.form.phone}`);
+                if(this.prefs.telegram) contactPreferences.push(`تلگرام: ${this.prefIds.telegram}`);
+                if(this.prefs.whatsapp) contactPreferences.push(`واتس‌اپ: ${this.prefIds.whatsapp}`);
+                if(this.prefs.bale) contactPreferences.push(`بله: ${this.prefIds.bale}`);
+                if(this.prefs.instagram) contactPreferences.push(`اینستاگرام: ${this.prefIds.instagram}`);
+
+                const dataToSend = {
+                    name: this.form.name, phone: this.form.phone, address: this.form.address,
+                    gender: this.form.gender, services: this.selectedServices.join('، '),
+                    date: this.getFormattedDate, ref: this.referrerPhone, tracking: this.trackingCode,
+                    loyaltyCode: this.loyaltyCode, orderType: this.isMovingOrder ? 'جابه‌جایی' : 'عادی',
+                    contactPrefs: contactPreferences
+                };
+
+                fetch(WORKER_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataToSend)
+                })
+                .then(res => res.json())
+                .then(res => { this.showModal = true; })
+                .catch(err => { console.log('خطای ورکر:', err); this.showModal = true; });
+            },
+
+            validateConsultName() {
+                if (!this.consult.name) this.consultErrors.name = 'نام الزامی است.';
+                else if (!this.persianRegex.test(this.consult.name)) this.consultErrors.name = 'فقط حروف فارسی مجاز است.';
+                else this.consultErrors.name = '';
+            },
+            
+            validateConsultPhone() {
+                this.consult.phone = this.cleanPhoneNumber(this.consult.phone);
+                if (this.consult.phone.length === 0) this.consultErrors.phone = 'شماره الزامی است.';
+                else if (this.consult.phone.length < 11) this.consultErrors.phone = 'شماره باید ۱۱ رقم باشد.';
+                else {
+                    const prefix = this.consult.phone.substring(0, 4);
+                    if (this.validPrefixes[prefix]) this.consultErrors.phone = '';
+                    else this.consultErrors.phone = 'پیش‌شماره معتبر نیست!';
+                }
+            },
+            
+            submitConsult() {
+                this.validateConsultName(); this.validateConsultPhone();
+                if (this.consultErrors.name || this.consultErrors.phone || !this.consult.name || !this.consult.phone || !this.consult.text) return alert('لطفاً تمامی فیلدها را به درستی تکمیل کنید.');
+                
+                let msg = `💬 *درخواست مشاوره جدید*\n👤 نام: ${this.consult.name}\n📞 تماس: ${this.consult.phone}\n📝 متن: ${this.consult.text}`;
+                
+                fetch(WORKER_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        name: this.consult.name, 
+                        phone: this.consult.phone, 
+                        services: 'مشاوره: ' + this.consult.text 
+                    })
+                }).catch(err => console.log('خطای ورکر:', err));
+
+                navigator.clipboard.writeText(msg).then(() => {
+                    alert('درخواست مشاوره ثبت شد و متن آن کپی شد!');
+                    window.open('https://wa.me/989198039245?text=' + encodeURIComponent(msg), '_blank');
+                });
+            }
+        }
+    });
+</script>
+</body>
+              </html>
