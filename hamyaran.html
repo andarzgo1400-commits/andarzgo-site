@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>باشگاه همیاران - تاسیسات اندرزگو</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+        :root { --primary: #0f172a; --secondary: #3b82f6; --success: #10b981; --bg: #f1f5f9; --card: #fff; --text: #334155; --muted: #64748b; --border: #e2e8f0; --danger: #ef4444; --gold: #d97706; --bronze: #b45309; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Vazirmatn', Tahoma, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text); font-size: 14px; padding-bottom: 50px; }
+        
+        /* Header */
+        .header { background: linear-gradient(135deg, #065f46, #10b981); color: white; padding: 20px 15px; border-radius: 0 0 20px 20px; text-align: center; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2); }
+        .header h1 { font-size: 18px; margin-bottom: 5px; }
+        .header p { font-size: 12px; opacity: 0.9; }
+
+        .container { max-width: 650px; margin: auto; padding: 0 15px; }
+        .card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+        .card-title { font-size: 15px; font-weight: bold; color: var(--primary); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Profile Info */
+        .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .profile-avatar { width: 60px; height: 60px; background: #e2e8f0; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 30px; }
+        .profile-details h3 { font-size: 16px; margin-bottom: 5px; }
+        .profile-details p { font-size: 12px; color: var(--muted); }
+        
+        .tier-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; color: white; display: inline-block; margin-top: 5px; }
+        .tier-gold { background: var(--gold); box-shadow: 0 2px 5px rgba(217, 119, 6, 0.3); }
+        .tier-bronze { background: var(--bronze); }
+        .tier-blue { background: var(--secondary); }
+
+        /* Stats */
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 15px; text-align: center; }
+        .stat-val { font-size: 20px; font-weight: bold; color: var(--primary); margin-bottom: 5px; }
+        .stat-lbl { font-size: 11px; color: var(--muted); }
+
+        /* Forms */
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: var(--muted); }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 14px; outline: none; background: var(--bg); transition: 0.3s; }
+        .form-group input:focus { border-color: var(--secondary); background: white; }
+        .form-group input.is-valid { border-color: var(--success); background: #f0fdf4; }
+        .form-group input.is-invalid { border-color: var(--danger); background: #fef2f2; }
+        
+        .bank-name { font-size: 11px; color: var(--success); font-weight: bold; margin-top: 4px; display: none; }
+        
+        .btn { width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: bold; font-size: 14px; color: white; cursor: pointer; margin-top: 10px; }
+        .btn-green { background: var(--success); }
+        .btn-blue { background: var(--secondary); }
+        .btn-gray { background: var(--muted); }
+
+        /* Referred Customers */
+        .customer-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px dashed var(--border); font-size: 13px; }
+        .customer-item:last-child { border-bottom: none; }
+        .status-badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-approved { background: #d1fae5; color: #065f46; }
+
+        .lock-alert { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 10px; border-radius: 8px; text-align: center; font-size: 12px; margin-bottom: 15px; font-weight: bold; }
+        .copyright-footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px; padding: 15px; border-top: 1px dashed #cbd5e1; }
+    </style>
+</head>
+<body>
+
+<div id="app" class="container">
+    <header class="header">
+        <h1>🤝 باشگاه همیاران اندرزگو</h1>
+        <p>با معرفی مشتری، کسب درآمد کنید!</p>
+    </header>
+
+    <!-- فرم ثبت نام (اگر ثبت نام نکرده باشد) -->
+    <div class="card" v-if="!isRegistered">
+        <div class="card-title">📝 فرم ثبت‌نام همیار</div>
+        
+        <div class="form-group">
+            <label>نام و نام خانوادگی (فقط فارسی)</label>
+            <input type="text" v-model="form.name" @input="validateName" :class="nameStatus" placeholder="مثلاً: علی رضایی">
+        </div>
+
+        <div class="form-group">
+            <label>شماره تماس (همراه)</label>
+            <input type="tel" v-model="form.phone" @input="validatePhone" :class="phoneStatus" placeholder="09123456789" maxlength="11">
+            <span style="font-size:11px; color:var(--success);" v-if="form.phone.length === 11">{{ operator }}</span>
+        </div>
+
+        <div class="form-group">
+            <label>کد ملی (۱۰ رقم)</label>
+            <input type="tel" v-model="form.nationalId" @input="validateNationalId" :class="nidStatus" placeholder="0012345678" maxlength="10">
+        </div>
+
+        <div class="form-group">
+            <label>شماره کارت بانکی (جهت واریز پورسانت)</label>
+            <input type="tel" v-model="form.card" @input="validateCard" :class="cardStatus" placeholder="6104-XXXX-XXXX-XXXX" maxlength="16">
+            <div class="bank-name" id="bankName">{{ bankName }}</div>
+        </div>
+
+        <button class="btn btn-green" @click="registerHamyar">ثبت‌نام و دریافت کد اختصاصی</button>
+    </div>
+
+    <!-- پنل همیار (اگر ثبت نام کرده باشد) -->
+    <div v-else>
+        <!-- کارت پروفایل -->
+        <div class="card">
+            <div class="profile-header">
+                <div class="profile-avatar">👤</div>
+                <div class="profile-details">
+                    <h3>{{ profile.name }}</h3>
+                    <p>کد همیار: <b style="color:var(--secondary);">{{ profile.uniqueCode }}</b></p>
+                    <div class="tier-badge" :class="'tier-' + profile.tier">
+                        {{ profile.tier === 'gold' ? '🏆 همیار طلایی' : (profile.tier === 'bronze' ? '🥉 همیار برنزی' : '🥈 همیار آبی') }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="lock-alert" v-if="profile.isLocked">
+                🔒 حساب شما تا زمان تایید دریافت پورسانت قفل می‌باشد.
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <div class="stat-val" style="color:var(--success);">{{ profile.totalEarnings | formatPrice }}</div>
+                    <div class="stat-lbl">کل پورسانت (تومان)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" style="color:var(--secondary);">{{ profile.referredCount }}</div>
+                    <div class="stat-lbl">مشتریان معرفی‌شده</div>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top:15px;">
+                <label>🔗 لینک اختصاصی دعوت شما (برای ارسال به مشتریان)</label>
+                <input type="text" :value="referralLink" readonly style="text-align:left; direction:ltr; background:#f1f5f9; font-size:12px;">
+            </div>
+            <button class="btn btn-blue" @click="copyLink">📋 کپی لینک اختصاصی</button>
+        </div>
+
+        <!-- لیست مشتریان معرفی شده -->
+        <div class="card">
+            <div class="card-title">👥 مشتریان معرفی‌شده توسط شما</div>
+            <div v-if="referredCustomers.length === 0" style="text-align:center; color:var(--muted); font-size:13px; padding:15px;">هنوز مشتری‌ای معرفی نکرده‌اید.</div>
+            <div class="customer-item" v-for="c in referredCustomers" :key="c.id">
+                <div>
+                    <div style="font-weight:bold; margin-bottom:3px;">{{ c.name }}</div>
+                    <div style="font-size:11px; color:var(--muted);">{{ c.date }}</div>
+                </div>
+                <div>
+                    <span class="status-badge" :class="c.status === 'approved' ? 'status-approved' : 'status-pending'">
+                        {{ c.status === 'approved' ? 'تایید شده' : 'در انتظار' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="copyright-footer">
+        <p>© تمامی حقوق برای <b>تاسیسات اندرزگو</b> محفوظ است.</p>
+    </div>
+</div>
+
+<script>
+    // آدرس بک‌اند (کلادفلر)
+    const WORKER_URL = "https://andarzgo-worker.andarzgo1400.workers.dev/api/order";
+
+    // دیتابیس بانک‌ها برای تشخیص شماره کارت
+    const banks = {
+        '603799': 'بانک ملی ایران', '610433': 'بانک ملت', '621986': 'بانک سامان',
+        '603770': 'بانک کشاورزی', '628023': 'بانک مسکن', '589210': 'بانک سپه',
+        '627648': 'بانک توسعه صادرات', '627760': 'پست بانک', '502229': 'بانک پاسارگاد',
+        '627488': 'بانک کارآفرین', '621986': 'بانک سامان', '639346': 'بانک سینا',
+        '639607': 'بانک سرمایه', '636214': 'بانک تات', '502806': 'بانک شهر',
+        '502938': 'بانک دی', '627353': 'بانک تجارت', '585983': 'بانک تجارت',
+        '627412': 'بانک اقتصاد نوین', '636795': 'بانک پارسیان', '639347': 'بانک پاسارگاد',
+        '639370': 'بانک مهر اقتصاد', '627381': 'بانک انصار', '505785': 'بانک ایران زمین',
+        '636949': 'بانک حکمت', '639194': 'بانک پارسیان', '627884': 'بانک قوامین'
+    };
+
+    new Vue({
+        el: '#app',
+        data: {
+            isRegistered: localStorage.getItem('andarzgo_hamyar_registered') ? true : false,
+            form: {
+                name: '', phone: '', nationalId: '', card: ''
+            },
+            nameStatus: '', phoneStatus: '', nidStatus: '', cardStatus: '',
+            operator: '', bankName: '',
+            
+            profile: {
+                name: localStorage.getItem('andarzgo_hamyar_name') || '',
+                uniqueCode: localStorage.getItem('andarzgo_hamyar_code') || '',
+                tier: 'blue',
+                isLocked: false,
+                totalEarnings: 0,
+                referredCount: 0
+            },
+            referredCustomers: []
+        },
+        mounted() {
+            if(this.isRegistered) {
+                this.loadHamyarData();
+            }
+        },
+        computed: {
+            referralLink() {
+                // فرض می‌کنیم آدرس سایت مشتری در نهایت این باشد
+                return `https://andarzgo-site.pages.dev/moshtary.html?ref=${this.profile.uniqueCode}`;
+            }
+        },
+        filters: {
+            formatPrice(val) {
+                return (Number(val) || 0).toLocaleString('fa-IR');
+            }
+        },
+        methods: {
+            // ================== اعتبارسنجی ==================
+            validateName() {
+                if(!this.form.name) { this.nameStatus = ''; return; }
+                if(!/^[\u0600-\u06FF\s]+$/.test(this.form.name)) { this.nameStatus = 'is-invalid'; }
+                else { this.nameStatus = 'is-valid'; }
+            },
+            validatePhone() {
+                this.form.phone = this.form.phone.replace(/[^0-9]/g, '').slice(0, 11);
+                if(!this.form.phone) { this.phoneStatus = ''; this.operator = ''; return; }
+                if(this.form.phone.length < 11 || !this.form.phone.startsWith('09')) {
+                    this.phoneStatus = 'is-invalid'; this.operator = '';
+                } else {
+                    this.phoneStatus = 'is-valid'; 
+                    const prefix = this.form.phone.substring(0, 3);
+                    if(['0910','0911','0912','0913','0914','0915','0916','0917','0918','0919','0990'].includes(prefix)) this.operator = 'همراه اول';
+                    else if(['0930','0933','0935','0936','0937','0938','0939','0901'].includes(prefix)) this.operator = 'ایرانسل';
+                    else if(['0920','0921','0922'].includes(prefix)) this.operator = 'رایتل';
+                    else this.operator = 'سایر';
+                }
+            },
+            validateNationalId() {
+                this.form.nationalId = this.form.nationalId.replace(/[^0-9]/g, '').slice(0, 10);
+                if(!this.form.nationalId) { this.nidStatus = ''; return; }
+                if(this.form.nationalId.length < 10) { this.nidStatus = 'is-invalid'; }
+                else { this.nidStatus = 'is-valid'; }
+            },
+            validateCard() {
+                this.form.card = this.form.card.replace(/[^0-9]/g, '').slice(0, 16);
+                if(!this.form.card) { this.cardStatus = ''; this.bankName = ''; return; }
+                
+                if(this.form.card.length < 16) {
+                    this.cardStatus = 'is-invalid';
+                    this.bankName = '';
+                } else {
+                    this.cardStatus = 'is-valid';
+                    const prefix = this.form.card.substring(0, 6);
+                    if(banks[prefix]) { this.bankName = banks[prefix]; }
+                    else { this.bankName = 'بانک ناشناس'; }
+                }
+            },
+
+            // ================== ثبت‌نام ==================
+            registerHamyar() {
+                if(this.nameStatus !== 'is-valid' || this.phoneStatus !== 'is-valid' || this.nidStatus !== 'is-valid' || this.cardStatus !== 'is-valid') {
+                    alert('لطفاً تمامی فیلدها را به درستی تکمیل کنید.');
+                    return;
+                }
+
+                // تولید کد یکتا
+                const uniqueCode = 'H-' + Math.floor(1000 + Math.random() * 9000);
+                
+                this.profile.name = this.form.name;
+                this.profile.uniqueCode = uniqueCode;
+                
+                localStorage.setItem('andarzgo_hamyar_registered', 'true');
+                localStorage.setItem('andarzgo_hamyar_name', this.form.name);
+                localStorage.setItem('andarzgo_hamyar_code', uniqueCode);
+                localStorage.setItem('andarzgo_hamyar_phone', this.form.phone);
+                localStorage.setItem('andarzgo_hamyar_card', this.form.card);
+                
+                this.isRegistered = true;
+                
+                // ارسال اطلاعات به سرور کلادفلر
+                fetch(WORKER_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        type: 'new_hamyar',
+                        name: this.form.name, 
+                        phone: this.form.phone,
+                        nationalId: this.form.nationalId,
+                        card: this.form.card,
+                        uniqueCode: uniqueCode
+                    })
+                }).catch(e => console.log('خطای ثبت همیار:', e));
+
+                this.loadHamyarData();
+            },
+
+            // ================== بارگذاری داده‌ها ==================
+            loadHamyarData() {
+                // در حالت واقعی، این اطلاعات باید از کلادفلر خوانده شوند.
+                // فعلا از دیتای تستی لوکال استفاده می‌کنیم.
+                this.referredCustomers = [
+                    { id: 1, name: 'علی احمدی', date: '1405/08/20', status: 'approved' },
+                    { id: 2, name: 'مریم رضایی', date: '1405/08/22', status: 'pending' }
+                ];
+                this.profile.referredCount = this.referredCustomers.length;
+                this.profile.totalEarnings = 150000; 
+            },
+
+            copyLink() {
+                navigator.clipboard.writeText(this.referralLink).then(() => {
+                    alert('لینک اختصاصی شما کپی شد! این لینک را برای مشتریان خود بفرستید.');
+                });
+            }
+        }
+    });
+</script>
+</body>
+</html>
