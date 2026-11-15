@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>پنل مدیریت - تاسیسات اندرزگو</title>
+<style>
+    :root { --primary: #0f172a; --secondary: #3b82f6; --success: #10b981; --bg: #f1f5f9; --card: #fff; --text: #334155; --muted: #64748b; --border: #e2e8f0; --danger: #ef4444; --warning: #f59e0b; --gold: #d97706; --bronze: #b45309; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Tahoma, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg); color: var(--text); font-size: 14px; padding-bottom: 50px; overflow-x: hidden; }
+    
+    /* Header & Tabs */
+    .admin-header { background: var(--primary); color: white; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+    .admin-header h1 { font-size: 14px; }
+    .header-actions { display: flex; gap: 6px; align-items: center; }
+    .btn-icon { background: rgba(255,255,255,0.1); color: white; border: none; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+    
+    .tabs-scroll { display: flex; overflow-x: auto; gap: 5px; padding: 8px; background: white; border-bottom: 1px solid var(--border); position: sticky; top: 54px; z-index: 99; scrollbar-width: none; }
+    .tabs-scroll::-webkit-scrollbar { display: none; }
+    .tab-btn { padding: 10px 15px; white-space: nowrap; text-align: center; font-weight: bold; color: var(--muted); cursor: pointer; border-radius: 8px; font-size: 12px; border: 1px solid var(--border); background: #f8fafc; transition: 0.2s; }
+    .tab-btn.active { background: var(--secondary); color: white; border-color: var(--secondary); }
+    
+    /* Search & Container */
+    .search-container { padding: 10px 15px; max-width: 640px; margin: auto; display: none; }
+    .search-box { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; outline: none; }
+    .container { padding: 0 15px 15px 15px; max-width: 640px; margin: auto; }
+    .tab-content { display: none; animation: fadeIn 0.3s; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+    /* Dashboard */
+    .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+    .dash-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); cursor: pointer; transition: 0.2s; }
+    .dash-icon { font-size: 30px; margin-bottom: 10px; display: block; }
+    .dash-card h3 { font-size: 13px; color: var(--primary); }
+    
+    /* UI Elements */
+    .accordion-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .accordion-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; font-size: 13.5px; background: #f8fafc; }
+    .accordion-header.active { background: #eff6ff; color: var(--secondary); border-bottom: 1px solid var(--border); }
+    .accordion-content { padding: 15px; display: none; background: white; }
+    .accordion-item.open .accordion-content { display: block; }
+    
+    .item-sub { font-size: 13px; color: var(--muted); margin-bottom: 10px; line-height: 1.8; }
+    .item-sub b { color: var(--text); }
+    .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; display: inline-block; }
+    .bg-yellow { background: #fef3c7; color: #92400e; } .bg-green { background: #d1fae5; color: #065f46; } 
+    .bg-red { background: #fee2e2; color: #991b1b; } .bg-blue { background: #dbeafe; color: #1e40af; } .bg-gray { background: #f1f5f9; color: #475569; }
+    
+    /* Buttons & Forms */
+    .btn { padding: 10px 14px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 13px; color: white; }
+    .btn-green { background: var(--success); } .btn-blue { background: var(--secondary); } .btn-orange { background: var(--warning); } .btn-red { background: var(--danger); } .btn-gray { background: var(--muted); }
+    .action-row { display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; }
+    .btn-sm { padding: 8px 10px; font-size: 12px; }
+    
+    .form-group { margin-bottom: 12px; position: relative; }
+    .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: var(--muted); }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; font-family: inherit; }
+    
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 15px; }
+    .modal-box { background: white; border-radius: 12px; width: 100%; max-width: 450px; max-height: 95vh; overflow-y: auto; overflow-x: hidden; padding: 20px; box-sizing: border-box; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    .modal-header h3 { color: var(--primary); font-size: 16px; }
+    .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--danger); }
+    
+    .modal-tabs { display: flex; gap: 5px; margin-bottom: 15px; background: #f1f5f9; padding: 5px; border-radius: 8px; }
+    .modal-tab { flex: 1; text-align: center; padding: 8px; font-size: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; color: var(--muted); }
+    .modal-tab.active { background: white; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* Hamyar Tiers */
+    .hamyar-card { border-right: 5px solid var(--secondary); }
+    .hamyar-card.bronze { border-right-color: var(--bronze); }
+    .hamyar-card.gold { border-right-color: var(--gold); background: #fffbeb; }
+
+    /* Invoice Row & Date specific */
+    .inv-row { display: flex; flex-direction: column; gap: 5px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 12px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .inv-row input { padding: 8px; font-size: 12px; border: 1px solid #ccc; border-radius: 6px; width: 100%; }
+    .date-box { display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: bold; background: #eff6ff; padding: 12px; border-radius: 8px; margin-bottom: 12px; color: var(--secondary); border: 1px solid #bfdbfe; }
+    .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    
+    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+    .stat-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
+    .stat-num { font-size: 20px; font-weight: bold; color: var(--secondary); }
+    .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    
+    .empty { text-align: center; padding: 25px; color: var(--muted); font-size: 13px; }
+    .copyright-footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px; padding: 15px; border-top: 1px dashed #cbd5e1; }
+    
+    .smart-paste-box { border: 2px dashed var(--secondary); background: #f0f9ff; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+    .smart-paste-box textarea { border: 1px solid #bae6fd; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+</style>
+</head>
+<body>
+
+<div id="adminPanel">
+    <div class="admin-header">
+        <h1>⚙️ مدیریت تاسیسات اندرزگو</h1>
+        <div class="header-actions">
+            <button class="btn-icon" onclick="toggleSecurity()" id="secBtn">🔒</button>
+        </div>
+    </div>
+
+    <div class="tabs-scroll" id="mainTabs">
+        <div class="tab-btn active" data-tab="dash" onclick="switchTab('dash', this)">📊 داشبورد</div>
+        <div class="tab-btn" data-tab="magazine" onclick="switchTab('magazine', this)">📰 مجله</div>
+        <div class="tab-btn" data-tab="req" onclick="switchTab('req', this)">📥 درخواست‌ها</div>
+        <div class="tab-btn" data-tab="inv" onclick="switchTab('inv', this)">🧾 فاکتورها</div>
+        <div class="tab-btn" data-tab="ham" onclick="switchTab('ham', this)">🤝 همیاران</div>
+        <div class="tab-btn" data-tab="contacts" onclick="switchTab('contacts', this)">📖 مخاطبین</div>
+        <div class="tab-btn" data-tab="ads" onclick="switchTab('ads', this)">📢 تبلیغات</div>
+    </div>
+
+    <div class="search-container" id="searchBoxContainer">
+        <input type="text" id="searchInput" class="search-box" placeholder="🔍 جستجوی نام، شماره..." onkeyup="handleSearch()">
+    </div>
+
+    <div class="container">
+        <!-- داشبورد -->
+        <div id="tab-dash" class="tab-content active">
+            <h2 style="font-size:16px; margin-bottom:10px; color:var(--primary);">به پنل مدیریت خوش آمدید</h2>
+            <div class="dash-grid">
+                <div class="dash-card" onclick="switchTab('magazine', document.querySelector('[data-tab=\'magazine\']'))"><span class="dash-icon">📰</span><h3>مجله تاسیسات اندرزگو</h3></div>
+                <div class="dash-card" onclick="switchTab('ads', document.querySelector('[data-tab=\'ads\']'))"><span class="dash-icon">📢</span><h3>مدیریت تبلیغات</h3></div>
+            </div>
+        </div>
+
+        <!-- مجله -->
+        <div id="tab-magazine" class="tab-content">
+            <button class="btn btn-green" style="width:100%; margin-bottom:15px;" onclick="openMagazineModal()">➕ نوشتن مقاله جدید</button>
+            <div id="magList"></div>
+        </div>
+
+        <!-- درخواست‌ها -->
+        <div id="tab-req" class="tab-content">
+            <div class="smart-paste-box">
+                <h3 style="font-size:14px; color:var(--secondary); margin-bottom:10px; text-align:center;">🤖 پردازش هوشمند پیام مشتری</h3>
+                <textarea id="pasteArea" rows="3" placeholder="متن پیام مشتری را اینجا پیست کنید..."></textarea>
+                <div class="action-row" style="margin-top:10px;">
+                    <button class="btn btn-blue" style="flex:1;" onclick="processSmartPaste('req')">🔍 بازبینی درخواست</button>
+                    <button class="btn btn-green" style="flex:1;" onclick="processSmartPaste('inv')">🧾 صدور فاکتور هوشمند</button>
+                </div>
+            </div>
+            <div id="reqList"></div>
+        </div>
+
+        <!-- فاکتورها -->
+        <div id="tab-inv" class="tab-content">
+            <div class="stat-grid">
+                <div class="stat-card"><div class="stat-num" id="invStatTotal">0</div><div class="stat-lbl">کل فاکتورها</div></div>
+                <div class="stat-card"><div class="stat-num" id="invStatPaid">0</div><div class="stat-lbl">وصول شده</div></div>
+            </div>
+            <button class="btn btn-green" style="width:100%; margin-bottom:15px;" onclick="openInvoiceModal()">➕ صدور فاکتور دستی</button>
+            <div id="invList"></div>
+        </div>
+
+        <!-- همیاران -->
+        <div id="tab-ham" class="tab-content"><div id="hamList"></div></div>
+
+        <!-- مخاطبین -->
+        <div id="tab-contacts" class="tab-content">
+            <button class="btn btn-blue" style="width:100%; margin-bottom:15px;" onclick="openContactModal()">➕ افزودن مخاطب</button>
+            <div id="contactList"></div>
+        </div>
+
+        <!-- تبلیغات -->
+        <div id="tab-ads" class="tab-content">
+            <button class="btn btn-blue" style="width:100%; margin-bottom:15px;" onclick="openModal('adModal')">➕ ایجاد کمپین تبلیغاتی</button>
+            <div id="adList"></div>
+        </div>
+    </div>
+    <div class="copyright-footer">© تمامی حقوق برای <b>تاسیسات اندرزگو</b> محفوظ است.</div>
+</div>
+
+<!-- ===== DataLists ===== -->
+<datalist id="servicesList">
+    <option value="نصب کولر گازی"><option value="سرویس کولر گازی"><option value="تعمیر کولر گازی">
+    <option value="نصب پکیج"><option value="سرویس پکیج"><option value="تعمیر پکیج">
+    <option value="لوله کشی آب"><option value="لوله کشی گاز"><option value="برقکاری"><option value="سایر خدمات">
+</datalist>
+<datalist id="laborTypes">
+    <option value="اجرت نصب"><option value="اجرت باز کردن"><option value="اجرت تعمیر">
+    <option value="اجرت جابه جایی"><option value="هزینه ایاب و ذهاب"><option value="خرید وسایل">
+</datalist>
+
+<!-- ===== Modals ===== -->
+
+<!-- Invoice Modal -->
+<div id="invoiceModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header"><h3>🧾 صدور فاکتور</h3><button class="close-btn" onclick="closeModal('invoiceModal')">×</button></div>
+        
+        <div class="date-box">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span>📅 تاریخ و ساعت</span>
+                <button class="btn btn-blue btn-sm" onclick="setNow()" style="padding:4px 8px; font-size:11px;">⏱️ زمان فعلی</button>
+            </div>
+            <div class="date-row">
+                <div><label style="font-size:11px; color:#64748b;">میلادی:</label><input type="date" id="invDateG" style="padding:6px; font-size:12px; font-weight:normal;"></div>
+                <div><label style="font-size:11px; color:#64748b;">ساعت:</label><input type="time" id="invTime" style="padding:6px; font-size:12px; font-weight:normal;"></div>
+            </div>
+            <div style="font-size:11px; margin-top:5px; color:#64748b;">شمسی: <span id="invDateJDisplay" style="color:var(--secondary); font-weight:bold;"></span></div>
+        </div>
+
+        <div class="form-group">
+            <label>نام و نام خانوادگی</label>
+            <input type="text" id="invCustName" placeholder="فقط حروف فارسی" oninput="validatePersianName(this, 'invNameErr')">
+            <div id="invNameErr" class="error-text"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>شماره همراه</label>
+                <input type="tel" id="invCustMobile" placeholder="۰۹..." oninput="validateMobile(this, 'invMobileErr')">
+                <div id="invMobileErr" class="error-text"></div>
+            </div>
+            <div class="form-group">
+                <label>شماره ثابت (اختیاری)</label>
+                <input type="tel" id="invCustPhone" placeholder="۰۲۱...">
+            </div>
+        </div>
+        
+        <div style="background:#f8fafc; padding:10px; border-radius:8px; margin-bottom:10px;">
+            <label style="font-size:12px; font-weight:bold; margin-bottom:5px; display:block;">ردیف‌های خدمات</label>
+            <div id="invRowsContainer"></div>
+            <button class="btn btn-gray btn-sm" style="width:100%; margin-top:5px;" onclick="addInvoiceRow()">+ افزودن ردیف</button>
+        </div>
+        
+        <div style="text-align:left; font-weight:bold; margin-bottom:10px; font-size:16px;">جمع کل: <span id="invTotalDisplay">0</span> تومان</div>
+        
+        <div style="background:#f0fdf4; padding:10px; border-radius:8px; margin-bottom:15px; display:flex; gap:8px;">
+            <input type="checkbox" id="invConfirm" style="width:18px; height:18px; margin-top:3px;">
+            <label for="invConfirm" style="font-size:11px; color:#065f46; line-height:1.6;">تاییدیه تحویل: اینجانب تایید می‌نمایم خدمات کامل انجام و تحویل داده شد.</label>
+        </div>
+        <button class="btn btn-green" style="width:100%;" onclick="saveInvoice()">💾 ثبت نهایی</button>
+    </div>
+</div>
+
+<!-- Smart Request Modal -->
+<div id="smartRequestModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header"><h3>📥 بازبینی درخواست</h3><button class="close-btn" onclick="closeModal('smartRequestModal')">×</button></div>
+        <div class="form-group"><label>نام</label><input type="text" id="smartReqName" oninput="validatePersianName(this, 'smartReqNameErr')"><div id="smartReqNameErr" class="error-text"></div></div>
+        <div class="form-group"><label>شماره</label><input type="tel" id="smartReqPhone" oninput="validateMobile(this, 'smartReqPhoneErr')"><div id="smartReqPhoneErr" class="error-text"></div></div>
+        <div class="form-group"><label>خدمات</label><input type="text" id="smartReqService"></div>
+        <button class="btn btn-green" style="width:100%; margin-top:10px;" onclick="saveSmartRequest()">💾 ثبت نهایی</button>
+    </div>
+</div>
+
+<!-- Magazine Modal -->
+<div id="magazineModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header"><h3>📰 مقاله جدید</h3><button class="close-btn" onclick="closeModal('magazineModal')">×</button></div>
+        <div class="modal-tabs">
+            <div class="modal-tab active" onclick="switchModalTab('mag', 'manual', this)">✍️ دستی</div>
+            <div class="modal-tab" onclick="switchModalTab('mag', 'paste', this)">📋 هوشمند</div>
+        </div>
+        <div id="mag-pane-manual" class="tab-pane active">
+            <div class="form-group"><label>عنوان</label><input type="text" id="magTitle"></div>
+            <div class="form-group"><label>متن</label><textarea id="magContent" rows="5"></textarea></div>
+        </div>
+        <div id="mag-pane-paste" class="tab-pane">
+            <textarea id="magPasteArea" rows="5" placeholder="متن را پیست کنید..."></textarea>
+            <button class="btn btn-blue" style="width:100%; margin-top:10px;" onclick="processMagPaste()">🔍 استخراج</button>
+        </div>
+        <button class="btn btn-green" style="width:100%; margin-top:15px;" onclick="saveMagazine()">💾 ثبت</button>
+    </div>
+</div>
+
+<!-- Ad Modal -->
+<div id="adModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header"><h3>📢 تبلیغ جدید</h3><button class="close-btn" onclick="closeModal('adModal')">×</button></div>
+        <div class="form-group"><label>عنوان</label><input type="text" id="adTitle"></div>
+        <div class="form-group"><label>متن</label><textarea id="adText" rows="3"></textarea></div>
+        <div class="form-group"><label>مدت (ثانیه)</label><input type="number" id="adDuration" value="60"></div>
+        <button class="btn btn-green" style="width:100%;" onclick="saveAd()">💾 ثبت</button>
+    </div>
+</div>
+
+<!-- Contact Modal -->
+<div id="contactModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header"><h3>📖 مخاطب جدید</h3><button class="close-btn" onclick="closeModal('contactModal')">×</button></div>
+        <div class="form-group"><label>نام</label><input type="text" id="contactFName" oninput="validatePersianName(this, 'contactFNameErr')"><div id="contactFNameErr" class="error-text"></div></div>
+        <div class="form-group"><label>شماره</label><input type="tel" id="contactPhone" oninput="validateMobile(this, 'contactPhoneErr')"><div id="contactPhoneErr" class="error-text"></div></div>
+        <button class="btn btn-green" style="width:100%;" onclick="saveContact()">💾 ثبت</button>
+    </div>
+</div>
+
+<script>
+    // ================= Date Helpers =================
+    function gregorian_to_jalali(gy, gm, gd) {
+        var g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+        var jy = (gy <= 1600) ? 0 : 979; gy -= (gy <= 1600) ? 621 : 1600;
+        var gy2 = (gm > 2) ? (gy + 1) : gy;
+        var days = (365 * gy) + (parseInt((gy2 + 3) / 4)) - (parseInt((gy2 + 99) / 100)) + (parseInt((gy2 + 399) / 400)) - 80 + gd + g_d_m[gm - 1];
+        jy += 33 * (parseInt(days / 12053)); days %= 12053; jy += 4 * (parseInt(days / 1461)); days %= 1461;
+        if (days > 365) { jy += parseInt((days - 1) / 365); days = (days - 1) % 365; }
+        var jm = (days < 186) ? 1 + parseInt(days / 31) : 7 + parseInt((days - 186) / 30);
+        var jd = 1 + ((days < 186) ? (days % 31) : ((days - 186) % 30));
+        return [jy, jm, jd];
+    }
+    function setNow() {
+        let d = new Date();
+        document.getElementById('invDateG').value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        document.getElementById('invTime').value = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        updateJalaliDateDisplay();
+    }
+    function updateJalaliDateDisplay() {
+        let dateVal = document.getElementById('invDateG').value; if(!dateVal) return;
+        let parts = dateVal.split('-'); let jArr = gregorian_to_jalali(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]));
+        document.getElementById('invDateJDisplay').innerText = `${jArr[0]}/${String(jArr[1]).padStart(2,'0')}/${String(jArr[2]).padStart(2,'0')}`;
+    }
+
+    // ================= Validation Helpers =================
+    function getCarrier(phone) {
+        if(!/^09\d{9}$/.test(phone)) return '';
+        const prefix = phone.substring(0, 3);
+        const hamrahAval = ['0910','0911','0912','0913','0914','0915','0916','0917','0918','0919','0990','0991','0992','0993','0994'];
+        const irancell = ['0930','0933','0935','0936','0937','0938','0939','0901','0902','0903','0904','0905','0941'];
+        const rightel = ['0920','0921','0922'];
+        if(hamrahAval.includes(prefix)) return 'همراه اول';
+        if(irancell.includes(prefix)) return 'ایرانسل';
+        if(rightel.includes(prefix)) return 'رایتل';
+        return 'سایر';
+    }
+    function validatePersianName(input, errId) {
+        const val = input.value.trim(), err = document.getElementById(errId);
+        if(val.length === 0) { input.classList.remove('is-invalid', 'is-valid'); err.style.display = 'none'; return false; }
+        if(!/^[\u0600-\u06FF\s]+$/.test(val)) { input.classList.add('is-invalid'); input.classList.remove('is-valid'); err.innerText = 'فقط حروف فارسی مجاز است.'; err.style.display = 'block'; return false; } 
+        else { input.classList.remove('is-invalid'); input.classList.add('is-valid'); err.style.display = 'none'; return true; }
+    }
+    function validateMobile(input, errId) {
+        const val = input.value.trim(), err = document.getElementById(errId);
+        if(val.length === 0) { input.classList.remove('is-invalid', 'is-valid'); err.style.display = 'none'; return false; }
+        if(!/^09\d{9}$/.test(val)) { input.classList.add('is-invalid'); input.classList.remove('is-valid'); err.innerText = 'باید ۱۱ رقم و با ۰۹ شروع شود.'; err.style.color = 'var(--danger)'; err.style.display = 'block'; return false; } 
+        else { input.classList.remove('is-invalid'); input.classList.add('is-valid'); err.innerText = `اپراتور: ${getCarrier(val)}`; err.style.color = 'var(--success)'; err.style.display = 'block'; return true; }
+    }
+
+    // ================= State =================
+    let isDataRevealed = false;
+    let currentSearchQuery = "";
+    let currentTab = 'dash';
+    let extractedData = { name: '', phone: '', service: '', price: 0 };
+
+    // ================= Data Layer =================
+    function initDB() {
+        if(!localStorage.getItem('andarzgo_requests')) localStorage.setItem('andarzgo_requests', JSON.stringify([]));
+        if(!localStorage.getItem('andarzgo_invoices')) localStorage.setItem('andarzgo_invoices', JSON.stringify([]));
+        if(!localStorage.getItem('andarzgo_contacts')) localStorage.setItem('andarzgo_contacts', JSON.stringify([]));
+        if(!localStorage.getItem('andarzgo_magazine')) localStorage.setItem('andarzgo_magazine', JSON.stringify([]));
+        if(!localStorage.getItem('andarzgo_ads')) localStorage.setItem('andarzgo_ads', JSON.stringify([]));
+        if(!localStorage.getItem('andarzgo_hamyars')) {
+            localStorage.setItem('andarzgo_hamyars', JSON.stringify([
+                { id: 1, name: 'رضا احمدی', phone: '09121111111', nationalId: '0012345678', card: '6104331234567890', tier: 'gold', uniqueCode: 'H-1001', isVerified: true, isLocked: false },
+                { id: 2, name: 'سارا کریمی', phone: '09122222222', nationalId: '0012345678', card: '6037991234567890', tier: 'blue', uniqueCode: 'H-1002', isVerified: false, isLocked: false }
+            ]));
+        }
+    }
+    function getDB(key) { return JSON.parse(localStorage.getItem(key)) || []; }
+    function saveDB(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+    function formatPrice(val) { return (Number(val) || 0).toLocaleString('fa-IR'); }
+
+    // ================= UI Logic =================
+    function switchTab(tabId, btn) {
+        currentTab = tabId;
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tabId).classList.add('active');
+        if(btn) btn.classList.add('active');
+        
+        document.getElementById('searchBoxContainer').style.display = (tabId === 'dash' || tabId === 'an' || tabId === 'admin' || tabId === 'ads') ? 'none' : 'block';
+        renderCurrentTab();
+    }
+    function switchModalTab(prefix, tabName, btn) {
+        document.querySelectorAll(`#${prefix}azineModal .modal-tab`).forEach(el => el.classList.remove('active')); btn.classList.add('active');
+        document.querySelectorAll(`#${prefix}azineModal .tab-pane`).forEach(el => el.classList.remove('active')); document.getElementById(`${prefix}-pane-${tabName}`).classList.add('active');
+    }
+    function toggleAccordion(header) { const item = header.parentElement; item.classList.toggle('open'); header.classList.toggle('active'); const icon = header.querySelector('.acc-icon'); if(icon) icon.innerText = item.classList.contains('open') ? '▲' : '▼'; }
+    function toggleSecurity() { isDataRevealed = !isDataRevealed; document.getElementById('secBtn').innerText = isDataRevealed ? '🔓' : '🔒'; renderCurrentTab(); }
+    function handleSearch() { currentSearchQuery = document.getElementById('searchInput').value.toLowerCase(); renderCurrentTab(); }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // ================= SMART PASTE =================
+    function processSmartPaste(action) {
+        let rawText = document.getElementById('pasteArea').value; if(!rawText.trim()) return alert('متن خالی است.');
+        let text = rawText.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+        let phoneMatch = text.match(/(09\d{9})/); let phone = phoneMatch ? phoneMatch[0] : ''; if(phone) text = text.replace(phone, '');
+        let priceMatch = text.match(/(\d{3,})\s*(تومان|تومن|هزار)?/); let price = priceMatch ? priceMatch[1] : 0; if(priceMatch) text = text.replace(priceMatch[0], '');
+        let services = ["نصب", "تعمیر", "سرویس", "کولر", "آبگرمکن", "پکیج", "لوله", "چاه", "گاز", "برق", "برقکاری", "لوله کشی", "آب"];
+        let foundServices = services.filter(s => text.includes(s)); let serviceStr = foundServices.length > 0 ? foundServices.join('، ') : 'نامشخص';
+        let cleanName = text.replace(/سلام|لطفا|از|برای|با|به|هستم|هست/g, '').trim(); if(!cleanName) cleanName = '---';
+        extractedData = { name: cleanName, phone: phone, service: serviceStr, price: price };
+
+        if(action === 'req') {
+            document.getElementById('smartReqName').value = extractedData.name; document.getElementById('smartReqPhone').value = extractedData.phone; document.getElementById('smartReqService').value = extractedData.service;
+            document.getElementById('smartReqNameErr').style.display = 'none'; document.getElementById('smartReqPhoneErr').style.display = 'none';
+            openModal('smartRequestModal');
+        } else if (action === 'inv') {
+            openInvoiceModal();
+            document.getElementById('invCustName').value = extractedData.name; document.getElementById('invCustMobile').value = extractedData.phone;
+            validatePersianName(document.getElementById('invCustName'), 'invNameErr'); validateMobile(document.getElementById('invCustMobile'), 'invMobileErr');
+            let firstRow = document.querySelector('.inv-row');
+            if(firstRow) { firstRow.querySelector('.inv-desc').value = extractedData.service; firstRow.querySelector('.inv-labor').value = extractedData.price > 0 ? extractedData.price : ''; calcInvTotal(); }
+        }
+    }
+    function saveSmartRequest() {
+        let name = document.getElementById('smartReqName').value.trim(), phone = document.getElementById('smartReqPhone').value.trim(), service = document.getElementById('smartReqService').value.trim();
+        if(!validatePersianName(document.getElementById('smartReqName'), 'smartReqNameErr')) return alert('نام نامعتبر است');
+        if(!validateMobile(document.getElementById('smartReqPhone'), 'smartReqPhoneErr')) return alert('شماره نامعتبر است');
+        let reqs = getDB('andarzgo_requests'); reqs.push({ id: Date.now(), name, phone, services: [service], status: 'pending', date: new Date().toLocaleDateString('fa-IR') }); saveDB('andarzgo_requests', reqs);
+        let contacts = getDB('andarzgo_contacts'); if(!contacts.find(c => c.phone === phone)) { contacts.push({ id: Date.now(), fname: name, phone }); saveDB('andarzgo_contacts', contacts); }
+        closeModal('smartRequestModal'); document.getElementById('pasteArea').value = ''; renderRequests(); alert('✅ درخواست ثبت شد.');
+    }
+
+    // ================= RENDER =================
+    function renderCurrentTab() {
+        if(currentTab === 'req') renderRequests(); if(currentTab === 'inv') renderInvoices(); if(currentTab === 'ham') renderHamyars();
+        if(currentTab === 'contacts') renderContacts(); if(currentTab === 'ads') renderAds(); if(currentTab === 'magazine') renderMagazine();
+    }
+
+    function renderRequests() {
+        let reqs = getDB('andarzgo_requests'); if(currentSearchQuery) reqs = reqs.filter(r => r.name.includes(currentSearchQuery) || r.phone.includes(currentSearchQuery));
+        const container = document.getElementById('reqList'); if(reqs.length === 0) { container.innerHTML = '<div class="empty">درخواستی نیست.</div>'; return; }
+        let html = '';
+        reqs.forEach(r => {
+            let badge = r.status === 'pending' ? '<span class="badge bg-yellow">در انتظار</span>' : '';
+            let btns = r.status === 'pending' ? `<button class="btn btn-green btn-sm" style="flex:1" onclick="updateReqStatus(${r.id},'approved')">تایید</button><button class="btn btn-red btn-sm" style="flex:1" onclick="updateReqStatus(${r.id},'rejected')">رد</button>` : `<button class="btn btn-red btn-sm" onclick="deleteReq(${r.id})">حذف</button>`;
+            html += `<div class="accordion-item"><div class="accordion-header" onclick="toggleAccordion(this)"><span>${r.name} ${badge}</span><span class="acc-icon">▼</span></div><div class="accordion-content"><div class="item-sub">📞 ${isDataRevealed ? r.phone : '***'}<br>🛠️ ${r.services.join('، ')}</div><div class="action-row">${btns}</div></div></div>`;
+        }); container.innerHTML = html;
+    }
+    function updateReqStatus(id, status) { if(!confirm('تغییر وضعیت؟')) return; let reqs = getDB('andarzgo_requests'); let idx = reqs.findIndex(r => r.id === id); if(idx > -1) { reqs[idx].status = status; saveDB('andarzgo_requests', reqs); renderRequests(); } }
+    function deleteReq(id) { if(!confirm('حذف شود؟')) return; saveDB('andarzgo_requests', getDB('andarzgo_requests').filter(r => r.id !== id)); renderRequests(); }
+
+    // --- Invoice Logic ---
+    function openInvoiceModal() {
+        document.getElementById('invCustName').value = ''; document.getElementById('invCustName').className = ''; document.getElementById('invCustMobile').value = ''; document.getElementById('invCustMobile').className = ''; document.getElementById('invCustPhone').value = '';
+        document.getElementById('invRowsContainer').innerHTML = ''; document.getElementById('invTotalDisplay').innerText = '0'; document.getElementById('invConfirm').checked = false;
+        document.getElementById('invNameErr').style.display = 'none'; document.getElementById('invMobileErr').style.display = 'none';
+        setNow(); addInvoiceRow(); openModal('invoiceModal');
+    }
+    function addInvoiceRow() {
+        const div = document.createElement('div'); div.className = 'inv-row';
+        div.innerHTML = `
+            <input type="text" list="servicesList" class="inv-desc" placeholder="شرح خدمت/کالا">
+            <input type="text" class="inv-detail" placeholder="توضیحات اضافه">
+            <input type="text" list="laborTypes" class="inv-labor-type" placeholder="نوع اجرت">
+            <input type="number" placeholder="مبلغ کالا (تومان)" class="inv-price" oninput="calcInvTotal()">
+            <input type="number" placeholder="مبلغ اجرت (تومان)" class="inv-labor" oninput="calcInvTotal()">`;
+        document.getElementById('invRowsContainer').appendChild(div);
+    }
+    function calcInvTotal() { let total = 0; document.querySelectorAll('.inv-price').forEach(el => total += Number(el.value) || 0); document.querySelectorAll('.inv-labor').forEach(el => total += Number(el.value) || 0); document.getElementById('invTotalDisplay').innerText = formatPrice(total); }
+    function saveInvoice() {
+        if(!document.getElementById('invConfirm').checked) { alert('تیک تاییدیه تحویل الزامی است.'); return; }
+        let name = document.getElementById('invCustName').value.trim(), mobile = document.getElementById('invCustMobile').value.trim(), phone = document.getElementById('invCustPhone').value.trim(), dateG = document.getElementById('invDateG').value, time = document.getElementById('invTime').value;
+        if(!validatePersianName(document.getElementById('invCustName'), 'invNameErr')) { alert('نام معتبر نیست.'); return; }
+        if(!validateMobile(document.getElementById('invCustMobile'), 'invMobileErr')) { alert('شماره همراه معتبر نیست.'); return; }
+        if(!dateG || !time) { alert('تاریخ و ساعت الزامی است.'); return; }
+        let items = [];
+        document.querySelectorAll('.inv-row').forEach(row => {
+            let desc = row.querySelector('.inv-desc').value, detail = row.querySelector('.inv-detail').value, laborType = row.querySelector('.inv-labor-type').value, price = Number(row.querySelector('.inv-price').value) || 0, labor = Number(row.querySelector('.inv-labor').value) || 0;
+            if(desc || price > 0 || labor > 0) items.push({ desc, detail, laborType, price, labor });
+        });
+        if(items.length === 0) { alert('حداقل یک ردیف وارد کنید.'); return; }
+        let total = items.reduce((sum, item) => sum + item.price + item.labor, 0);
+        let parts = dateG.split('-'); let jArr = gregorian_to_jalali(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2])); let dateJ = `${jArr[0]}/${String(jArr[1]).padStart(2,'0')}/${String(jArr[2]).padStart(2,'0')}`;
+        let invs = getDB('andarzgo_invoices'); invs.push({ id: Date.now(), name, mobile, phone, items, total, status: 'pending', dateG, dateJ, time }); saveDB('andarzgo_invoices', invs);
+        let contacts = getDB('andarzgo_contacts'); if(!contacts.find(c => c.phone === mobile)) { contacts.push({ id: Date.now(), fname: name, phone: mobile }); saveDB('andarzgo_contacts', contacts); }
+        closeModal('invoiceModal'); renderInvoices(); alert('فاکتور صادر شد.');
+    }
+    function renderInvoices() {
+        let invs = getDB('andarzgo_invoices'); document.getElementById('invStatTotal').innerText = invs.filter(i=>i.status !== 'archived').length; document.getElementById('invStatPaid').innerText = invs.filter(i => i.status === 'paid').length;
+        const container = document.getElementById('invList'); if(invs.length === 0) { container.innerHTML = '<div class="empty">فاکتوری نیست.</div>'; return; }
+        let html = '';
+        invs.forEach(inv => {
+            if(inv.status === 'archived') return;
+            let badge = inv.status === 'paid' ? '<span class="badge bg-green">پرداخت شده</span>' : '<span class="badge bg-yellow">در انتظار</span>';
+            let btnPay = inv.status !== 'paid' ? `<button class="btn btn-green btn-sm" onclick="payInvoice(${inv.id})">💵 تسویه</button>` : '';
+            let btnArchive = `<button class="btn btn-orange btn-sm" onclick="archiveInv(${inv.id})">📦 بایگانی</button>`;
+            html += `<div class="accordion-item"><div class="accordion-header" onclick="toggleAccordion(this)"><span>${inv.name} - ${formatPrice(inv.total)} تومان</span><span class="acc-icon">▼</span></div>
+                <div class="accordion-content"><div class="item-sub">وضعیت: ${badge} | تاریخ: ${inv.dateJ} ساعت ${inv.time}</div>
+                <div style="font-size:12px; margin-bottom:10px; background:#f8fafc; padding:10px; border-radius:8px;">${inv.items.map(i => `<b>▪ ${i.desc}</b> ${i.detail ? '('+i.detail+')' : ''}<br>اجرت: ${i.laborType || '---'} (${i.labor}) | کالا: (${i.price})<br>`).join('<hr style="border:0; border-top:1px dashed #ddd; margin:5px 0;">')}</div>
+                <div class="action-row">${btnPay}${btnArchive}<button class="btn btn-red btn-sm" onclick="deleteInv(${inv.id})">🗑️ حذف</button></div></div></div>`;
+        }); container.innerHTML = html;
+    }
+    function payInvoice(id) { if(!confirm('تسویه شود؟')) return; let invs = getDB('andarzgo_invoices'); let idx = invs.findIndex(i => i.id === id); if(idx > -1) { invs[idx].status = 'paid'; saveDB('andarzgo_invoices', invs); renderInvoices(); } }
+    function archiveInv(id) { if(!confirm('به بایگانی منتقل شود؟')) return; let invs = getDB('andarzgo_invoices'); let idx = invs.findIndex(i => i.id === id); if(idx > -1) { invs[idx].status = 'archived'; saveDB('andarzgo_invoices', invs); renderInvoices(); } }
+    function deleteInv(id) { if(!confirm('حذف کامل شود؟')) return; saveDB('andarzgo_invoices', getDB('andarzgo_invoices').filter(i => i.id !== id)); renderInvoices(); }
+
+    // --- Hamyars Logic ---
+    function renderHamyars() {
+        let hams = getDB('andarzgo_hamyars'); if(currentSearchQuery) hams = hams.filter(h => h.name.includes(currentSearchQuery) || h.phone.includes(currentSearchQuery));
+        const container = document.getElementById('hamList'); if(hams.length === 0) { container.innerHTML = '<div class="empty">همیاری نیست.</div>'; return; }
+        let html = '';
+        hams.forEach(h => {
+            let tierColor = h.tier === 'gold' ? '#d97706' : (h.tier === 'bronze' ? '#b45309' : '#3b82f6'); let tierName = h.tier === 'gold' ? 'طلایی' : (h.tier === 'bronze' ? 'برنز' : 'آبی');
+            let statusHtml = '';
+            if(!h.isVerified) { statusHtml = `<button class="btn btn-green btn-sm" style="width:100%; margin-top:10px;" onclick="verifyHam(${h.id})">✅ تایید هویت</button>`; } 
+            else if(h.isLocked) { statusHtml = `<div class="badge bg-red" style="margin-top:10px;">🔒 قفل</div><button class="btn btn-orange btn-sm" style="width:100%; margin-top:5px;" onclick="unlockHam(${h.id})">🔓 آزادسازی</button>`; } 
+            else { statusHtml = `<div class="form-row" style="margin-top:10px;"><input type="number" id="comm_${h.id}" placeholder="مبلغ پورسانت"><button class="btn btn-blue" onclick="payComm(${h.id})">💸 واریز</button></div>`; }
+            html += `<div class="accordion-item hamyar-card ${h.tier}" style="border-right-color: ${tierColor};"><div class="accordion-header" onclick="toggleAccordion(this)"><span>${h.name} <span class="badge" style="background:${tierColor}; color:white;">${tierName}</span></span><span class="acc-icon">▼</span></div>
+                <div class="accordion-content"><div class="item-sub">🆔 کد: <b>${h.uniqueCode}</b><br>📞 ${isDataRevealed ? h.phone : '***'}<br>💳 ${isDataRevealed ? h.card : '****'}</div>${statusHtml}<div class="action-row" style="margin-top:15px; border-top:1px dashed #ccc; padding-top:10px;"><button class="btn btn-red btn-sm" onclick="deleteHamyar(${h.id})">🗑️ حذف</button></div></div></div>`;
+        }); container.innerHTML = html;
+    }
+    function verifyHam(id) { if(!confirm('تایید شود؟')) return; let d = getDB('andarzgo_hamyars'); let i = d.findIndex(x => x.id === id); if(i>-1){ d[i].isVerified = true; saveDB('andarzgo_hamyars', d); renderHamyars(); } }
+    function payComm(id) { let amt = document.getElementById(`comm_${id}`).value; if(!amt) return alert('مبلغ؟'); if(!confirm('واریز شود؟')) return; let d = getDB('andarzgo_hamyars'); let i = d.findIndex(x => x.id === id); if(i>-1){ d[i].isLocked = true; d[i].lastComm = amt; saveDB('andarzgo_hamyars', d); renderHamyars(); } }
+    function unlockHam(id) { if(!confirm('باز شود؟')) return; let d = getDB('andarzgo_hamyars'); let i = d.findIndex(x => x.id === id); if(i>-1){ d[i].isLocked = false; saveDB('andarzgo_hamyars', d); renderHamyars(); } }
+    function deleteHamyar(id) { if(!confirm('حذف شود؟')) return; saveDB('andarzgo_hamyars', getDB('andarzgo_hamyars').filter(x => x.id !== id)); renderHamyars(); }
+
+    // --- Magazine Logic ---
+    function openMagazineModal() { document.getElementById('magTitle').value = ''; document.getElementById('magContent').value = ''; document.getElementById('magPasteArea').value = ''; openModal('magazineModal'); }
+    function processMagPaste() { let text = document.getElementById('magPasteArea').value.trim(); if(!text) return alert('متن خالی است'); let lines = text.split('\n'); document.getElementById('magTitle').value = lines[0].substring(0, 50); document.getElementById('magContent').value = lines.slice(1).join('\n').trim(); document.querySelector('[onclick*="manual"]').click(); alert('استخراج شد.'); }
+    function saveMagazine() { let title = document.getElementById('magTitle').value.trim(), content = document.getElementById('magContent').value.trim(); if(!title || !content) { alert('عنوان و متن الزامی است.'); return; } let mags = getDB('andarzgo_magazine'); mags.push({ id: Date.now(), title, content, date: new Date().toLocaleDateString('fa-IR') }); saveDB('andarzgo_magazine', mags); closeModal('magazineModal'); renderMagazine(); alert('مقاله ثبت شد.'); }
+    function renderMagazine() { let mags = getDB('andarzgo_magazine'); const container = document.getElementById('magList'); if(mags.length === 0) { container.innerHTML = '<div class="empty">هنوز مقاله‌ای نوشته نشده است.</div>'; return; } let html = ''; mags.forEach(m => { html += `<div class="accordion-item"><div class="accordion-header" onclick="toggleAccordion(this)"><span>${m.title}</span><span class="acc-icon">▼</span></div><div class="accordion-content"><div class="item-sub"><b>تاریخ:</b> ${m.date}</div><div style="background:#f8fafc; padding:10px; border-radius:8px; font-size:12px; margin-bottom:10px;">${m.content}</div><div class="action-row"><button class="btn btn-red btn-sm" onclick="deleteMagazine(${m.id})">🗑️ حذف</button></div></div></div>`; }); container.innerHTML = html; }
+    function deleteMagazine(id) { if(!confirm('حذف شود؟')) return; saveDB('andarzgo_magazine', getDB('andarzgo_magazine').filter(m => m.id !== id)); renderMagazine(); }
+
+    // --- Ads Logic ---
+    function openAdModal() { document.getElementById('adTitle').value = ''; document.getElementById('adText').value = ''; document.getElementById('adDuration').value = '60'; openModal('adModal'); }
+    function saveAd() { let title = document.getElementById('adTitle').value.trim(), text = document.getElementById('adText').value.trim(), dur = document.getElementById('adDuration').value; if(!text || !dur) { alert('متن و مدت الزامی است.'); return; } let ads = getDB('andarzgo_ads') || []; ads.push({ id: Date.now(), title: title || 'بدون عنوان', text: text, duration: Number(dur), remaining: Number(dur), isActive: false }); saveDB('andarzgo_ads', ads); closeModal('adModal'); renderAds(); }
+    function renderAds() { let ads = getDB('andarzgo_ads') || []; const container = document.getElementById('adList'); if(ads.length === 0) { container.innerHTML = '<div class="empty">تبلیغی نیست.</div>'; return; } let html = ''; ads.forEach(ad => { let btn = ad.isActive ? `<button class="btn btn-orange btn-sm" onclick="toggleAd(${ad.id})">توقف</button>` : `<button class="btn btn-green btn-sm" onclick="toggleAd(${ad.id})">فعال</button>`; html += `<div class="accordion-item"><div class="accordion-header" onclick="toggleAccordion(this)"><span>${ad.title} (${ad.isActive?'فعال':'متوقف'})</span><span class="acc-icon">▼</span></div><div class="accordion-content"><div class="item-sub">متن: ${ad.text}<br>زمان: ${ad.remaining} ثانیه</div><div class="action-row">${btn}<button class="btn btn-red btn-sm" onclick="delAd(${ad.id})">حذف</button></div></div></div>`; }); container.innerHTML = html; }
+    function toggleAd(id) { let d = getDB('andarzgo_ads') || []; let i = d.findIndex(x => x.id === id); if(i>-1){ d[i].isActive = !d[i].isActive; saveDB('andarzgo_ads', d); renderAds(); } }
+    function delAd(id) { if(!confirm('حذف شود؟')) return; saveDB('andarzgo_ads', (getDB('andarzgo_ads') || []).filter(x => x.id !== id)); renderAds(); }
+
+    // --- Contacts Logic ---
+    function openContactModal() { document.getElementById('contactFName').value = ''; document.getElementById('contactPhone').value = ''; openModal('contactModal'); }
+    function saveContact() { let fname = document.getElementById('contactFName').value.trim(), phone = document.getElementById('contactPhone').value.trim(); if(!validatePersianName(document.getElementById('contactFName'), 'contactFNameErr')) return alert('نام نامعتبر است'); if(!validateMobile(document.getElementById('contactPhone'), 'contactPhoneErr')) return alert('شماره نامعتبر است'); let contacts = getDB('andarzgo_contacts'); contacts.push({ id: Date.now(), fname, phone }); saveDB('andarzgo_contacts', contacts); closeModal('contactModal'); renderContacts(); alert('ذخیره شد.'); }
+    function renderContacts() { let contacts = getDB('andarzgo_contacts'); if(currentSearchQuery) contacts = contacts.filter(c => c.fname.includes(currentSearchQuery) || c.phone.includes(currentSearchQuery)); const container = document.getElementById('contactList'); if(contacts.length === 0) { container.innerHTML = '<div class="empty">مخاطبی یافت نشد.</div>'; return; } let html = ''; contacts.forEach(c => { html += `<div class="accordion-item"><div class="accordion-header" onclick="toggleAccordion(this)"><span>${c.fname}</span><span class="acc-icon">▼</span></div><div class="accordion-content"><div class="item-sub">📞 ${isDataRevealed ? c.phone : '***'}</div><div class="action-row"><button class="btn btn-red btn-sm" onclick="deleteContact(${c.id})">🗑️ حذف</button></div></div></div>`; }); container.innerHTML = html; }
+    function deleteContact(id) { if(!confirm('حذف شود؟')) return; saveDB('andarzgo_contacts', getDB('andarzgo_contacts').filter(c => c.id !== id)); renderContacts(); }
+    
+    // ================= Startup =================
+    window.onload = function() { 
+        initDB(); 
+        renderCurrentTab(); 
+        setInterval(() => { 
+            let d = getDB('andarzgo_ads') || []; 
+            let c = false; 
+            d.forEach(a => { if(a.isActive && a.remaining > 0){ a.remaining--; c=true; } }); 
+            if(c){ saveDB('andarzgo_ads', d); if(currentTab==='ads') renderAds(); } 
+        }, 1000); 
+    };
+</script>
+</body>
+  </html>
